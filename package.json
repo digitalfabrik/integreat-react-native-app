@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "react-native start",
-    "bundle": "react-native bundle --entry-file index.js --bundle-output bundle.js",
+    "bundle": "react-native bundle --entry-file index.js --bundle-output bundle.js --config ../../../../bundle.metro.config.js",
     "start:reset": "react-native start --reset-cache",
     "android": "react-native run-android --no-packager",
     "android:release": "yarn android --variant=release",
