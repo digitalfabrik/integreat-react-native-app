@@ -9,6 +9,7 @@ import FastImage from 'react-native-fast-image'
 import CategoryCaption from './CategoryCaption'
 import StyledLink from './StyledLink'
 import SubCategoryListItem from './SubCategoryListItem'
+import getFastImageSource from '../../common/getFastImageSource'
 
 const Row = styled.View`
   flex: 1;
@@ -66,8 +67,9 @@ class CategoryListItem extends React.Component<PropsType> {
       <Row>
         <StyledLink onPress={this.onCategoryPress} underlayColor={this.props.theme.colors.backgroundAccentColor}>
           <>
-            <CategoryThumbnail source={category.thumbnail ? {uri: category.thumbnail} : iconPlaceholder}
-                               resizeMode={FastImage.resizeMode.contain} />
+            <CategoryThumbnail
+              source={getFastImageSource(category.thumbnail || iconPlaceholder)}
+              resizeMode={FastImage.resizeMode.contain} />
             {this.renderTitle()}
           </>
         </StyledLink>

@@ -2,9 +2,9 @@
 
 import * as React from 'react'
 import styled from 'styled-components/native'
-import type { FastImageSource } from 'react-native-fast-image'
 import FastImage from 'react-native-fast-image'
 import type { ThemeType } from '../../theme/constants/theme'
+import getFastImageSource from '../getFastImageSource'
 
 const ListItemView = styled.View`
   flex: 1;
@@ -42,7 +42,7 @@ const Title = styled.Text`
 `
 
 type PropsType = {|
-  thumbnail?: FastImageSource | number,
+  thumbnail?: string | number,
   title: string,
   children?: React.Node,
   navigateTo: () => void,
@@ -55,7 +55,7 @@ class ListItem extends React.PureComponent<PropsType> {
     return (
       <StyledTouchableOpacity onPress={this.props.navigateTo} theme={theme}>
         <ListItemView>
-          {thumbnail && <Thumbnail source={thumbnail} />}
+          {thumbnail && <Thumbnail source={getFastImageSource(thumbnail)} />}
           <Description theme={theme}>
             <Title theme={theme}>{title}</Title>
             {children}

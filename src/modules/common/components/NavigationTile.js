@@ -78,10 +78,10 @@ class NavigationTile extends React.Component<PropsType> {
 
   getTileContent (): React.Node {
     const {tile, theme} = this.props
-    const imageSource = getFastImageSource(tile.thumbnail)
     return <>
       <Circle theme={theme}>
-        <Thumbnail theme={theme} source={imageSource} resizeMode={FastImage.resizeMode.contain} />
+        <Thumbnail theme={theme} source={getFastImageSource(tile.thumbnail)}
+                   resizeMode={FastImage.resizeMode.contain} />
         {this.getNewsDot()}
       </Circle>
       <TileTitle theme={theme}>{tile.title}</TileTitle>
