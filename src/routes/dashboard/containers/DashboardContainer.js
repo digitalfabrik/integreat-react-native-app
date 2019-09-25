@@ -84,7 +84,7 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
     return { status: 'error', refreshProps }
   }
 
-  if (state.cities.status === 'loading' || !languages || switchingLanguage || route.status === 'loading') {
+  if (state.cities.status === 'loading' || !languages || switchingLanguage) {
     return { status: 'loading' }
   }
 
@@ -97,6 +97,10 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
       refreshProps,
       changeUnavailableLanguage: createChangeUnavailableLanguage(city, ownProps.navigation)
     }
+  }
+
+  if (route.status === 'loading') {
+    return { status: 'loading' }
   }
 
   const stateView = new CategoriesRouteStateView(route.path, route.models, route.children)
