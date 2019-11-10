@@ -6,39 +6,38 @@ import type { ThemeType } from '../theme/constants/theme'
 
 // language=JavaScript
 const renderJS = (files: PageResourceCacheStateType) => `
-(
-  function() {
-    var hrefs = document.querySelectorAll('[href]')
-    var srcs = document.querySelectorAll('[src]')
-    var files = ${JSON.stringify(files)}
+(function() {
+  var hrefs = document.querySelectorAll('[href]')
+  var srcs = document.querySelectorAll('[src]')
+  var files = ${JSON.stringify(files)}
     
     if (!files) {
       console.warn('Files for WebView undefined! Not replacing urls...' )
       return
     }
-
-    console.debug('Files to inject:') // TODO: remove
-    console.debug(files)
-
-    for (var i = 0; i < hrefs.length; i++) {
-      var item = hrefs[i]
-      console.debug('Found href: ' + decodeURI(item.href))
-      var newResource = files[decodeURI(item.href)]
-      if (newResource) {
-        console.debug('Replaced ' + item.href + ' with ' + newResource.filePath)
-        item.href = '${URL_PREFIX}' + newResource.filePath
-      }
+  
+  console.debug('Files to inject:') // TODO: remove
+  console.debug(files)
+  
+  for (var i = 0; i < hrefs.length; i++) {
+    var item = hrefs[i]
+    console.debug('Found href: ' + decodeURI(item.href))
+    var newResource = files[decodeURI(item.href)]
+    if (newResource) {
+      console.debug('Replaced ' + item.href + ' with ' + newResource.filePath)
+      item.href = '${URL_PREFIX}' + newResource.filePath
     }
-
-    for (var i = 0; i < srcs.length; i++) {
-      var item = srcs[i]
-      console.debug('Found src: ' + decodeURI(item.src))
-      var newResource = files[decodeURI(item.src)]
-      if (newResource) {
-        console.debug('Replaced ' + item.src + ' with ' + newResource.filePath)
-        item.src = '${URL_PREFIX}' + newResource.filePath
-      }
+  }
+  
+  for (var i = 0; i < srcs.length; i++) {
+    var item = srcs[i]
+    console.debug('Found src: ' + decodeURI(item.src))
+    var newResource = files[decodeURI(item.src)]
+    if (newResource) {
+      console.debug('Replaced ' + item.src + ' with ' + newResource.filePath)
+      item.src = '${URL_PREFIX}' + newResource.filePath
     }
+  }
 })();
 
 (function() {
