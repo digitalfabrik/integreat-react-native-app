@@ -61,10 +61,17 @@ export default class ResourceURLFinder {
       Array.from(urlSet).forEach(url => {
         const urlHash = hashUrl(url)
         const filePath = buildFilePath(url, path, urlHash)
-
-        fetchMap[filePath] = [url, path, urlHash]
+        if (path.includes('events')) {
+          console.debug('eventUrl', path, url, filePath)
+        }
+        if (fetchMap[filePath]) {
+          console.debug('already exists', path, url)
+        }
+        if (!fetchMap[filePath]) {
+          fetchMap[filePath] = []
+        }
+        fetchMap[filePath].push([url, path, urlHash])
       })
-
       return fetchMap
     }, {})
   }
