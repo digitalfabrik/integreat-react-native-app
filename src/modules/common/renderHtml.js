@@ -5,31 +5,17 @@ import type { FileCacheStateType } from '../app/StateType'
 import type { ThemeType } from '../theme/constants/theme'
 
 // language=JavaScript
-const renderJS = (files: FileCacheStateType) => `  
+const renderJS = (files: FileCacheStateType) => `
 (
-  function() {
-    var container = document.getElementById('measure-container')
-    function adjustHeight() {
-      container.setAttribute('style', 'padding: 1px 0;'); // Used for measuring collapsed vertical margins
-    
-      if (!window.ReactNativeWebView){
-        return window.setTimeout(adjustHeight, 100);
-      }
-      
-      window.ReactNativeWebView.postMessage(container.getBoundingClientRect().height - 2);
-      container.setAttribute('style', '');
-    }
-    
-    window.addEventListener('load', adjustHeight);
-    window.addEventListener('resize', adjustHeight);
-  }
-)();
-
-  (
   function() {
     var hrefs = document.querySelectorAll('[href]');
     var srcs = document.querySelectorAll('[src]');
     var files = ${JSON.stringify(files)};
+    
+    if (!files) {
+      console.warn('Files for WebView undefined! Not replacing urls...' )
+      return;
+    }
 
     console.debug('Files to inject:'); // TODO: remove
     console.debug(files);
@@ -53,6 +39,24 @@ const renderJS = (files: FileCacheStateType) => `
         item.src = '${URL_PREFIX}' + newResource.filePath;
       }
     }
+  }
+)();
+(
+  function() {
+    var container = document.getElementById('measure-container')
+    function adjustHeight() {
+      container.setAttribute('style', 'padding: 1px 0;'); // Used for measuring collapsed vertical margins
+    
+      if (!window.ReactNativeWebView){
+        return window.setTimeout(adjustHeight, 100);
+      }
+      
+      window.ReactNativeWebView.postMessage(container.getBoundingClientRect().height - 2);
+      container.setAttribute('style', '');
+    }
+    
+    window.addEventListener('load', adjustHeight);
+    window.addEventListener('resize', adjustHeight);
   }
 )();
 `
