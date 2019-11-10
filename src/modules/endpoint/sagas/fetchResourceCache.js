@@ -24,7 +24,6 @@ export default function * fetchResourceCache (
   city: string, language: string, fetchMap: FetchMapType, dataContainer: DataContainer): Saga<void> {
   try {
     const targetUrls = mapValues(fetchMap, ([url]) => url)
-
     const results = yield call(new FetcherModule().fetchAsync, targetUrls, progress => console.log(progress))
 
     const successResults = pickBy(results, result => !result.errorMessage)
@@ -35,8 +34,21 @@ export default function * fetchResourceCache (
       console.warn(message)
     }
 
-    const targetCategories: { [categoryPath: PathType]: Array<FilePathType> } =
-      invertBy(mapValues(fetchMap, ([url, path, urlHash]) => path))
+    const urlMap = mapValues(fetchMap,
+      values => reduce(values, (acc, [url, path, urlHash]) => [...acc, path]), [])
+
+    const targetCategories = reduce(urlMap,
+      (acc: { [categoryPath: PathType]: Array<FilePathType> }, paths, urlHash: FilePathType) => {
+        paths.forEach((path: string) => {
+          if (!acc[path]) {
+            acc[path] = []
+          }
+          acc[path].push(urlHash)
+        })
+        return acc
+      }, {})
+
+    console.log('targetCategories', targetCategories)
 
     const resourceCache = mapValues(targetCategories, filePaths =>
       reduce(filePaths, (acc, filePath) => {

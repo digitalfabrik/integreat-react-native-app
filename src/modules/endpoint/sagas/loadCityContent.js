@@ -70,13 +70,12 @@ export default function * loadCityContent (
   if (criterion.shouldRefreshResources() && !isCellularConnection) {
     const resourceURLFinder = new ResourceURLFinder()
     resourceURLFinder.init()
-
     const fetchMap = resourceURLFinder.buildFetchMap(
       categoriesMap.toArray().concat(events),
       (url, path, urlHash) => buildResourceFilePath(url, path, newCity, urlHash)
     )
-
     resourceURLFinder.finalize()
+
     yield call(fetchResourceCache, newCity, newLanguage, fetchMap, dataContainer)
   }
 
