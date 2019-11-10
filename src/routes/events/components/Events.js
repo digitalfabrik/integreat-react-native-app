@@ -66,7 +66,7 @@ class Events extends React.Component<PropsType> {
     navigation.navigate('FeedbackModal', {
       isPositiveFeedback,
       feedbackItems: [
-        createFeedbackVariant(t('feedback:contentOfPage', { page: event.title }), PAGE_FEEDBACK_TYPE, event.path),
+        createFeedbackVariant(t('feedback:contentOfEvent', { event: event.title }), PAGE_FEEDBACK_TYPE, event.path),
         createFeedbackVariant(t('feedback:contentOfCity', { city: cityTitle }), EVENTS_FEEDBACK_TYPE),
         createFeedbackVariant(t('feedback:technicalTopics'), CATEGORIES_FEEDBACK_TYPE)
       ]
@@ -100,7 +100,6 @@ class Events extends React.Component<PropsType> {
                      lastUpdate={event.lastUpdate}
                      language={language}
                      files={files}
-                     t={t}
                      theme={theme}
                      cityCode={cityCode}
                      navigation={navigation}
@@ -116,12 +115,12 @@ class Events extends React.Component<PropsType> {
       }
 
       const error = new ContentNotFoundError({ type: 'event', id: path, city: cityCode, language })
-      return <Failure error={error} t={t} theme={theme} />
+      return <Failure errorMessage={error.message} t={t} theme={theme} />
     }
 
     return <SpaceBetween>
       <View>
-        <Caption title={t('news')} theme={theme} />
+        <Caption title={t('events')} theme={theme} />
         <List noItemsMessage={t('currentlyNoEvents')}
               items={events}
               renderItem={this.renderEventListItem(cityCode, language)}

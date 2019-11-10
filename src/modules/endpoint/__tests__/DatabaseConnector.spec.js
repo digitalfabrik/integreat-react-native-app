@@ -18,10 +18,13 @@ afterEach(() => {
 })
 
 describe('DatabaseConnector', () => {
+  const city = 'augsburg'
+  const language = 'de'
+
   const testCities = new CityModelBuilder(2).build()
-  const testCategoriesMap = new CategoriesMapModelBuilder(2, 2).build()
+  const testCategoriesMap = new CategoriesMapModelBuilder(city, language, 2, 2).build()
   const testLanguages = new LanguageModelBuilder(2).build()
-  const testEvents = new EventModelBuilder('testSeed', 2).build()
+  const testEvents = new EventModelBuilder('testSeed', 2, city, language).build()
 
   const testResources = {
     'de':
@@ -31,7 +34,7 @@ describe('DatabaseConnector', () => {
         'https://test.de/path/to/resource/test.png':
         {
           filePath: '/local/path/to/resource/b4b5dca65e423.png',
-          lastUpdate: moment.tz('20110204', 'UTC'),
+          lastUpdate: moment('2011-02-04T00:00:00.000Z'),
           hash: 'testHash'
         }
       },
@@ -40,7 +43,7 @@ describe('DatabaseConnector', () => {
         'https://test.de/path/to/resource/test2.jpg':
         {
           filePath: '/local/path/to/resource/970c65c41eac0.jpg',
-          lastUpdate: moment.tz('20110204', 'UTC'),
+          lastUpdate: moment('2011-05-04T00:00:00.000Z'),
           hash: 'testHash'
         }
       }
@@ -280,11 +283,8 @@ describe('DatabaseConnector', () => {
       const cache = await databaseConnector.loadResourceCache(context)
       expect(cache).toEqual({})
     })
-    // cache is not equal to testResources
-    // (lastUpdate is a moment object in the expected data, but a string in the received data)
-    // will be fixed in NATIVE-330
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('should return a value that matches the one that was stored', async () => {
+
+    it('should return a value that matches the one that was stored', async () => {
       const context = new DatabaseContext('tcc', 'de')
       await databaseConnector.storeResourceCache(testResources, context)
 

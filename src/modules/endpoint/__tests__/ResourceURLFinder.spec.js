@@ -48,10 +48,33 @@ describe('ResourceURLFinder', () => {
       },
       { path: '/path2', thumbnail: '', content: `<img src="https://ex.am/pl2.png" alt="Crazy" />` }
     ]
-    const fetchMap = finder.buildFetchMap(input, (url, path, urlHash) =>
-      `buildFilePath('${url}', '${path}', '${urlHash}')`)
+    const fetchMap = finder.buildFetchMap(input, (url, urlHash) =>
+      `buildFilePath('${url}', '${urlHash}')`)
     finder.finalize()
 
+    expect(fetchMap).toMatchSnapshot()
+  })
+
+  it('should build a correct fetch map if two pages are using the same resource', () => {
+    const finder = new ResourceURLFinder()
+    finder.init()
+    const input = [
+      {
+        path: '/path1',
+        thumbnail: 'https://ex.am/thumb.png',
+        content: `<img src="https://ex.am/pl1.png" alt="Crazy" />`
+      },
+      {
+        path: '/path2',
+        thumbnail: 'https://ex.am/thumb.png',
+        content: `<img src="https://ex.am/pl1.png" alt="Crazy" />`
+      }
+    ]
+    const fetchMap = finder.buildFetchMap(input, (url, urlHash) =>
+      `buildFilePath('${url}', '${urlHash}')`)
+    finder.finalize()
+
+    expect(fetchMap['/path1']).toEqual(fetchMap['/path2'])
     expect(fetchMap).toMatchSnapshot()
   })
 })

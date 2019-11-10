@@ -13,9 +13,7 @@ const pushEvent = (state: CityContentStateType, action: PushEventActionType): Ci
 
   const getEventRoute = (): EventRouteStateType => {
     if (!path) {
-      const allAvailableLanguages = new Map(cityLanguages.map(
-        language => [language.code, `/${city}/${language.code}/events`]
-      ))
+      const allAvailableLanguages = new Map(cityLanguages.map(lng => [lng.code, null]))
       return { status: 'ready', path: null, models: events, allAvailableLanguages, language, city }
     }
     const event: ?EventModel = events.find(event => event.path === path)
@@ -36,13 +34,14 @@ const pushEvent = (state: CityContentStateType, action: PushEventActionType): Ci
   }
 
   // If there is an error in the old resourceCache, we want to override it
-  const newResourceCache =
-    state.resourceCache.errorMessage === undefined ? { ...state.resourceCache, ...resourceCache } : resourceCache
+  const newResourceCache = state.resourceCache.status === 'ready'
+    ? { ...state.resourceCache.value, ...resourceCache }
+    : resourceCache
 
   return {
     ...state,
     eventsRouteMapping: { ...state.eventsRouteMapping, [key]: getEventRoute() },
-    resourceCache: newResourceCache
+    resourceCache: { status: 'ready', value: newResourceCache }
   }
 }
 

@@ -1,7 +1,6 @@
 // @flow
 
 import * as React from 'react'
-import { ScrollView } from 'react-native'
 import type { TFunction } from 'react-i18next'
 import { ExtraModel, WohnenOfferModel } from '@integreat-app/integreat-api-client'
 import OfferDetail from './OfferDetail'
@@ -44,7 +43,7 @@ class WohnenExtra extends React.Component<PropsType> {
       const offer = offers.find(_offer => hashWohnenOffer(_offer) === offerHash)
 
       if (!offer) {
-        return <Failure error={new Error('Angebot nicht gefunden.')} t={t} theme={theme} />
+        return <Failure errorMessage={'Angebot nicht gefunden.'} t={t} theme={theme} />
       }
 
       return (
@@ -53,13 +52,13 @@ class WohnenExtra extends React.Component<PropsType> {
     }
 
     return (
-      <ScrollView>
+      <>
         <Caption title={wohnenExtra.title} theme={theme} />
         <List noItemsMessage={t('noOffersAvailable')}
               items={offers}
               renderItem={this.renderOfferListItem}
               theme={theme} />
-      </ScrollView>
+      </>
     )
   }
 }

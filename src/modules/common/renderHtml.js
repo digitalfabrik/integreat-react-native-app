@@ -1,67 +1,65 @@
 // @flow
 
 import { getFontFaceSource, URL_PREFIX } from '../platform/constants/webview'
-import type { FileCacheStateType } from '../app/StateType'
+import type { PageResourceCacheStateType } from '../app/StateType'
 import type { ThemeType } from '../theme/constants/theme'
 
 // language=JavaScript
-const renderJS = (files: FileCacheStateType) => `
+const renderJS = (files: PageResourceCacheStateType) => `
 (
   function() {
-    var hrefs = document.querySelectorAll('[href]');
-    var srcs = document.querySelectorAll('[src]');
-    var files = ${JSON.stringify(files)};
+    var hrefs = document.querySelectorAll('[href]')
+    var srcs = document.querySelectorAll('[src]')
+    var files = ${JSON.stringify(files)}
     
     if (!files) {
       console.warn('Files for WebView undefined! Not replacing urls...' )
-      return;
+      return
     }
 
-    console.debug('Files to inject:'); // TODO: remove
-    console.debug(files);
+    console.debug('Files to inject:') // TODO: remove
+    console.debug(files)
 
     for (var i = 0; i < hrefs.length; i++) {
-      var item = hrefs[i];
-      console.debug('Found href: ' + decodeURI(item.href));
-      var newResource = files[decodeURI(item.href)];
+      var item = hrefs[i]
+      console.debug('Found href: ' + decodeURI(item.href))
+      var newResource = files[decodeURI(item.href)]
       if (newResource) {
-        console.debug('Replaced ' + item.href + ' with ' + newResource.filePath);
-        item.href = '${URL_PREFIX}' + newResource.filePath;
+        console.debug('Replaced ' + item.href + ' with ' + newResource.filePath)
+        item.href = '${URL_PREFIX}' + newResource.filePath
       }
     }
 
     for (var i = 0; i < srcs.length; i++) {
-      var item = srcs[i];
-      console.debug('Found src: ' + decodeURI(item.src));
-      var newResource = files[decodeURI(item.src)];
+      var item = srcs[i]
+      console.debug('Found src: ' + decodeURI(item.src))
+      var newResource = files[decodeURI(item.src)]
       if (newResource) {
-        console.debug('Replaced ' + item.src + ' with ' + newResource.filePath);
-        item.src = '${URL_PREFIX}' + newResource.filePath;
+        console.debug('Replaced ' + item.src + ' with ' + newResource.filePath)
+        item.src = '${URL_PREFIX}' + newResource.filePath
       }
     }
-  }
-)();
-(
-  function() {
-    var container = document.getElementById('measure-container')
-    function adjustHeight() {
-      container.setAttribute('style', 'padding: 1px 0;'); // Used for measuring collapsed vertical margins
+})();
+
+(function() {
+  var container = document.getElementById('measure-container')
+  function adjustHeight() {
+    container.setAttribute('style', 'padding: 1px 0;'); // Used for measuring collapsed vertical margins
     
-      if (!window.ReactNativeWebView){
-        return window.setTimeout(adjustHeight, 100);
-      }
-      
-      window.ReactNativeWebView.postMessage(container.getBoundingClientRect().height - 2);
-      container.setAttribute('style', '');
+    if (!window.ReactNativeWebView){
+      return window.setTimeout(adjustHeight, 100);
     }
-    
-    window.addEventListener('load', adjustHeight);
-    window.addEventListener('resize', adjustHeight);
+
+    window.ReactNativeWebView.postMessage(container.getBoundingClientRect().height - 2);
+    container.setAttribute('style', '');
   }
-)();
+  
+  window.addEventListener('load', adjustHeight);
+  window.addEventListener('resize', adjustHeight);
+})();
 `
 
-export default (html: string, files: FileCacheStateType, theme: ThemeType, direction: 'rtl' | 'ltr') => {
+export default (html: string, files: PageResourceCacheStateType, theme: ThemeType, direction: 'rtl' | 'ltr') => {
   // language=HTML
   return `
 <html>
