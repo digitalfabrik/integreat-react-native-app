@@ -52,7 +52,7 @@ Minimizing the app and using others (multi-tasking)
 * Change between Landscape and Portrait mode
 * Turn off your phone while testing
 
-and anything else you can think of…
+and anything else you can think of...
 
 #### Describe your steps: 
 
