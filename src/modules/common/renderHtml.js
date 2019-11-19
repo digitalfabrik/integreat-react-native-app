@@ -12,7 +12,7 @@ const renderJS = (files: PageResourceCacheStateType) => `
   var files = ${JSON.stringify(files)}
     
     if (!files) {
-      console.warn('Files for WebView undefined! Not replacing urls...' )
+      alert('Files for WebView undefined! Not replacing urls...' )
       return
     }
   
