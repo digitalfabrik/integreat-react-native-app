@@ -37,7 +37,7 @@ export default ({ setSetting, t, language }: {
             if (language === 'de') {
               Linking.openURL('https://integreat-app.de/about/')
             } else {
-              Linking.openURL('https://integreat-app.de/about/')
+              Linking.openURL('https://integreat-app.de/en/about/')
             }
           }
         },
