@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import type { NavigationScene, NavigationScreenProp } from 'react-navigation'
 import { withNavigation } from 'react-navigation'
 import type { TFunction } from 'react-i18next'
-import { translate } from 'react-i18next'
+import { withTranslation } from 'react-i18next'
 
 import Header from '../components/Header'
 import withTheme from '../../theme/hocs/withTheme'
@@ -26,6 +26,7 @@ type StatePropsType = {|
   language: string,
   goToLanguageChange?: () => void,
   peeking: boolean,
+  categoriesAvailable: boolean,
   cityModel?: CityModel
 |}
 
@@ -41,21 +42,25 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
   const route = state.cityContent?.categoriesRouteMapping[routeKey] || state.cityContent?.eventsRouteMapping[routeKey]
   const languages = state.cityContent?.languages
 
-  if (!route || route.status !== 'ready' || state.cities.status !== 'ready' || !state.cityContent || !languages) {
+  if (!route || route.status !== 'ready' || state.cities.status !== 'ready' || !state.cityContent ||
+    !languages || languages.status !== 'ready') {
     // Route does not exist yet. In this case it is not really defined whether we are peek or not because
     // we do not yet know the city of the route.
-    return { language: state.contentLanguage, peeking: false }
+    return { language: state.contentLanguage, peeking: false, categoriesAvailable: false }
   }
 
   const cities = state.cities.models
   const cityCode = state.cityContent.city
+  const categoriesAvailable = state.cityContent.searchRoute !== null
+
   const cityModel = cities.find(city => city.code === cityCode)
+
   const goToLanguageChange = () => {
     ownProps.navigation.navigate({
       routeName: 'ChangeLanguageModal',
       params: {
         currentLanguage: route.language,
-        languages,
+        languages: languages.models,
         cityCode,
         availableLanguages: Array.from(route.allAvailableLanguages.keys())
       }
@@ -63,7 +68,7 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
   }
   const peeking = isPeekingRoute(state, { routeCity: route.city })
 
-  return { peeking, cityModel, language: route.language, goToLanguageChange }
+  return { peeking, cityModel, language: route.language, goToLanguageChange, categoriesAvailable }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<StoreActionType>, ownProps: OwnPropsType): DispatchPropsType => ({
@@ -71,7 +76,7 @@ const mapDispatchToProps = (dispatch: Dispatch<StoreActionType>, ownProps: OwnPr
 })
 
 export default withNavigation(
-  translate('header')(
+  withTranslation('layout')(
     connect<PropsType, OwnPropsType, _, _, _, _>(mapStateToProps, mapDispatchToProps)(
       withTheme(props => props.language)(
         Header

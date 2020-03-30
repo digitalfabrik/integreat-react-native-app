@@ -3,17 +3,29 @@
 import React from 'react'
 
 import CitySelector from './CitySelector'
-
 import type { TFunction } from 'react-i18next'
 import SearchInput from './SearchInput'
 import { CityModel } from '@integreat-app/integreat-api-client'
 import type { ThemeType } from '../../../modules/theme/constants/theme'
+import { View } from 'react-native'
+import styled from 'styled-components/native'
+import type { LocationType } from './Landing'
+
+const SearchBar = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15%;
+`
 
 type PropsType = {
   cities: Array<CityModel>,
   navigateToDashboard: (city: CityModel) => void,
   t: TFunction,
-  theme: ThemeType
+  theme: ThemeType,
+  location: LocationType,
+  proposeNearbyCities: boolean,
+  tryAgain: null | () => void
 }
 
 type StateType = {
@@ -23,30 +35,28 @@ type StateType = {
 class FilterableCitySelector extends React.Component<PropsType, StateType> {
   constructor (props: PropsType) {
     super(props)
-    this.state = { filterText: '' }
+    this.state = {
+      filterText: ''
+    }
   }
 
   onFilterTextChange = (filterText: string) => this.setState({ filterText })
 
   render () {
-    const { cities, t, theme } = this.props
+    const { t, theme } = this.props
     const filterText = this.state.filterText
 
     return (
-      <>
-        <SearchInput
-          filterText={filterText}
-          onFilterTextChange={this.onFilterTextChange}
-          placeholderText={t('searchCity')}
-          spaceSearch={false}
-          theme={theme} />
-        <CitySelector
-          cities={cities}
-          filterText={filterText}
-          navigateToDashboard={this.props.navigateToDashboard}
-          theme={theme}
-        />
-      </>
+      <View>
+        <SearchBar>
+          <SearchInput filterText={filterText}
+                       onFilterTextChange={this.onFilterTextChange}
+                       placeholderText={t('searchCity')}
+                       spaceSearch={false}
+                       theme={theme} />
+        </SearchBar>
+        <CitySelector {...this.props} filterText={filterText} />
+      </View>
     )
   }
 }

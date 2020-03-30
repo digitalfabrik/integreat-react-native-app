@@ -9,6 +9,8 @@ import {
 } from '@integreat-app/integreat-api-client'
 import Moment from 'moment'
 import { DEFAULT_LANGUAGE } from '../i18n/constants'
+import type { ErrorCodeType } from '../error/ErrorCodes'
+import ErrorCodes from '../error/ErrorCodes'
 
 export type PathType = string
 
@@ -39,7 +41,8 @@ export type CategoryRouteStateType = {|
 |} | {|
   +status: 'error',
   ...CategoryRouteConfigType,
-  +message: string
+  +message: string,
+  +code: ErrorCodeType
 |}
 
 export type EventRouteConfigType = {|
@@ -64,7 +67,8 @@ export type EventRouteStateType = {|
 |} | {|
   +status: 'error',
   ...EventRouteConfigType,
-  +message: string
+  +code: ErrorCodeType,
+  +message: ?string
 |}
 
 export type PageResourceCacheEntryStateType = {|
@@ -83,7 +87,8 @@ export type LanguageResourceCacheStateType = $ReadOnly<{
 
 export type ResourceCacheStateType = {|
   +status: 'error',
-  +message: string
+  +code: ErrorCodeType,
+  +message: ?string
 |} | {|
   +status: 'ready',
   +value: LanguageResourceCacheStateType
@@ -108,13 +113,26 @@ export type CitiesStateType = {|
   +status: 'loading'
 |} | {|
   +status: 'error',
+  +code: ErrorCodeType,
   +message: string
 |}
 
 export const defaultCitiesState: CitiesStateType = {
   status: 'error',
+  code: ErrorCodes.UnknownError,
   message: 'Cities not yet initialized'
 }
+
+export type LanguagesStateType = {|
+  +status: 'ready',
+  +models: $ReadOnlyArray<LanguageModel>
+|} | {|
+  +status: 'loading'
+|} | {|
+  +status: 'error',
+  +code: ErrorCodeType,
+  +message: string
+|}
 
 export const defaultContentLanguageState = DEFAULT_LANGUAGE
 
@@ -125,7 +143,7 @@ export type SearchRouteType = {|
 export type CityContentStateType = {|
   +city: string,
   +switchingLanguage: boolean,
-  +languages: ?$ReadOnlyArray<LanguageModel>,
+  +languages: LanguagesStateType,
   +categoriesRouteMapping: CategoriesRouteMappingType,
   +eventsRouteMapping: EventsRouteMappingType,
   +resourceCache: ResourceCacheStateType,
@@ -136,7 +154,6 @@ export const defaultCityContentState = null
 
 export type StateType = {|
   +darkMode: boolean,
-
   +cityContent: CityContentStateType | null,
   +contentLanguage: string,
   +cities: CitiesStateType

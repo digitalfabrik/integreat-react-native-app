@@ -4,7 +4,8 @@ import * as React from 'react'
 
 import type { ThemeType } from '../../../modules/theme/constants/theme'
 import CategoryCaption from './CategoryCaption'
-import styled, { type StyledComponent } from 'styled-components/native'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
 import { contentDirection } from '../../i18n/contentDirection'
 
 const SubCategoryCaption = styled(CategoryCaption)`
@@ -45,7 +46,7 @@ class SubCategoryListItem extends React.PureComponent<PropsType> {
     return (
       <FlexStyledLink onPress={this.onSubCategoryPress} underlayColor={theme.colors.backgroundAccentColor}
                       language={language} theme={theme}>
-        <SubCategoryCaption search={''} theme={theme}>
+        <SubCategoryCaption search='' theme={theme}>
           <SubCategoryTitle theme={theme}>{subCategory.title}</SubCategoryTitle>
         </SubCategoryCaption>
       </FlexStyledLink>

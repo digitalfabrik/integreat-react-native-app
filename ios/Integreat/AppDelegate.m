@@ -10,11 +10,6 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
-#if __has_include(<React/RNSentry.h>)
-#import <React/RNSentry.h> // This is used for versions of react >= 0.40
-#else
-#import "RNSentry.h" // This is used for versions of react < 0.40
-#endif
 
 @implementation AppDelegate
 
@@ -25,8 +20,6 @@
                                                    moduleName:@"Integreat"
                                             initialProperties:nil];
 
-  [RNSentry installWithRootView:rootView];
-
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -34,6 +27,8 @@
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+  
+  [self clearStorage];
   return YES;
 }
 
@@ -44,6 +39,42 @@
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
+}
+
+- (void)clearStorage
+{
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+  NSString *lastLanguageKey = @"last_location";
+
+  if ([preferences objectForKey:lastLanguageKey] != nil)
+  {
+    //clear preferences
+    [self resetDefaults];
+    
+    //clear storage
+    [self removeCache];
+  }
+}
+
+- (void)resetDefaults {
+    NSUserDefaults * defs = [NSUserDefaults standardUserDefaults];
+    NSDictionary * dict = [defs dictionaryRepresentation];
+    for (id key in dict) {
+        [defs removeObjectForKey:key];
+    }
+    [defs synchronize];
+}
+
+- (void)removeCache
+{
+    NSFileManager* manager = [NSFileManager defaultManager];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+    NSString *libraryDirectory = [paths objectAtIndex:0];
+    NSArray *directoryContent = [manager contentsOfDirectoryAtPath: libraryDirectory error:nil];
+    for (NSString *content in directoryContent)  {
+        NSString *path = [libraryDirectory stringByAppendingPathComponent:content];
+        [manager removeItemAtPath:path error:nil];
+    }
 }
 
 @end

@@ -1,10 +1,11 @@
 // @flow
 
 import * as React from 'react'
-import { Platform, Share } from 'react-native'
+import { Share } from 'react-native'
 import logo from '../assets/integreat-app-logo.png'
-import styled, { type StyledComponent } from 'styled-components/native'
-import HeaderButtons, { HeaderButton, Item } from 'react-navigation-header-buttons'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
+import { HeaderButtons, HeaderButton, Item } from 'react-navigation-header-buttons'
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons'
 import HeaderBackButton from 'react-navigation-stack/lib/module/views/Header/HeaderBackButton'
 
@@ -49,7 +50,7 @@ const BoxShadow: StyledComponent<{}, ThemeType, *> = styled.View`
   shadow-opacity: 0.18;
   shadow-radius: 1.00px;
   background-color: ${props => props.theme.colors.backgroundAccentColor};
-  height: ${props => props.theme.dimensions.headerHeight};
+  height: ${props => props.theme.dimensions.headerHeight}px;
 `
 
 const MaterialHeaderButton = props => (
@@ -58,10 +59,10 @@ const MaterialHeaderButton = props => (
 
 const MaterialHeaderButtons = props => {
   return (
-    <HeaderButtons
-      HeaderButtonComponent={MaterialHeaderButton}
-      OverflowIcon={<MaterialIcon name='more-vert' size={23} color='black' />}
-      {...props}
+    // $FlowFixMe onOverflowMenuPress should not be required
+    <HeaderButtons HeaderButtonComponent={MaterialHeaderButton}
+                   OverflowIcon={<MaterialIcon name='more-vert' size={23} color='black' />}
+                   {...props}
     />
   )
 }
@@ -74,6 +75,7 @@ type PropsType = {|
   theme: ThemeType,
   language: string,
   peeking: boolean,
+  categoriesAvailable: boolean,
   navigateToLanding: () => void,
   goToLanguageChange?: () => void,
   cityModel?: CityModel
@@ -108,10 +110,6 @@ class Header extends React.PureComponent<PropsType> {
     this.props.navigation.navigate('Settings')
   }
 
-  isPeeking (): boolean {
-    return this.props.peeking
-  }
-
   onShare = async () => {
     const { navigation, t } = this.props
     const sharePath: ?string = navigation.getParam('sharePath')
@@ -119,17 +117,12 @@ class Header extends React.PureComponent<PropsType> {
       return console.error('sharePath is undefined')
     }
     const url = `https://integreat.app${sharePath}`
-    const shareMessage = t('shareMessage')
-    const message: string = Platform.select({
-      android: `${shareMessage} ${url}`,
-      ios: shareMessage
-    })
+    const message = t('shareMessage', { message: url, interpolation: { escapeValue: false } })
 
     try {
       await Share.share({
         message,
-        title: 'Integreat App',
-        url
+        title: 'Integreat App'
       })
     } catch (e) {
       alert(e.message)
@@ -161,21 +154,23 @@ class Header extends React.PureComponent<PropsType> {
   }
 
   render () {
-    const { cityModel, navigation, t, theme, goToLanguageChange } = this.props
+    const { cityModel, navigation, t, theme, goToLanguageChange, peeking, categoriesAvailable } = this.props
     const sharePath = navigation.getParam('sharePath')
 
     return <BoxShadow theme={theme}>
       <Horizontal>
         <HorizontalLeft>
           {this.canGoBackInStack() ? <HeaderBackButton onPress={this.goBackInStack} /> : <Logo source={logo} />}
-          {cityModel && <HeaderText theme={theme}>{this.cityDisplayName(cityModel)}</HeaderText>}
+          {cityModel &&
+          <HeaderText allowFontScaling={false} theme={theme}>{this.cityDisplayName(cityModel)}</HeaderText>}
         </HorizontalLeft>
         <MaterialHeaderButtons>
-          {this.renderItem('Search', 'search', 'always', !this.isPeeking() ? this.goToSearch : undefined)}
-          {this.renderItem('Change Language', 'language', 'always',
-            !this.isPeeking() && goToLanguageChange ? goToLanguageChange : undefined)}
+          {!peeking && categoriesAvailable &&
+          this.renderItem(t('search'), 'search', 'always', this.goToSearch)}
+          {!peeking && goToLanguageChange &&
+          this.renderItem(t('changeLanguage'), 'language', 'always', goToLanguageChange)}
           {this.renderItem(t('share'), undefined, 'never', sharePath ? this.onShare : undefined)}
-          {this.renderItem('Change Location', undefined, 'never', this.goToLanding)}
+          {this.renderItem(t('changeLocation'), undefined, 'never', this.goToLanding)}
           {this.renderItem(t('settings'), undefined, 'never', this.goToSettings)}
           {this.renderItem(t('disclaimer'), undefined, 'never', this.goToDisclaimer)}
         </MaterialHeaderButtons>

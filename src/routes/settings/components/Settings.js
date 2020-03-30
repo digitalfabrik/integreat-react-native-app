@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { SectionList, StyleSheet, Switch, View } from 'react-native'
-import styled, { type StyledComponent } from 'styled-components/native'
-
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
 import SettingItem from './SettingItem'
 import type { ThemeType } from '../../../modules/theme/constants/theme'
 import type { TFunction } from 'react-i18next'
@@ -37,8 +37,8 @@ type ItemType = {
 type SectionType = SectionBase<ItemType> & {title: ?string}
 
 const ItemSeparator: StyledComponent<{}, ThemeType, *> = styled.View`
-    background-color: ${props => props.theme.colors.textDecorationColor};;
-    height: ${StyleSheet.hairlineWidth};
+    background-color: ${props => props.theme.colors.textDecorationColor};
+    height: ${StyleSheet.hairlineWidth}px;
 `
 
 const SectionHeader = styled.Text`
@@ -92,13 +92,20 @@ export default class Settings extends React.Component<PropsType, StateType> {
     return (
       <SettingItem title={title} description={description}
                    onPress={onPress} theme={theme}>
-        {hasSwitch && <Switch value={value} onValueChange={onPress} />}
+        {hasSwitch && <Switch thumbColor={theme.colors.themeColor} trackColor={{ true: theme.colors.themeColor }}
+                              value={value} onValueChange={onPress} />}
       </SettingItem>
     )
   }
 
-  renderSectionHeader = ({ section: { title } }: { section: SectionType }) =>
-    <View><SectionHeader theme={this.props.theme}>{title}</SectionHeader></View>
+  renderSectionHeader = ({ section: { title } }: { section: SectionType }) => {
+    if (!title) {
+      return null
+    }
+    return (
+      <View><SectionHeader theme={this.props.theme}>{title}</SectionHeader></View>
+    )
+  }
 
   keyExtractor = (item: ItemType, index: number): string => index.toString()
 

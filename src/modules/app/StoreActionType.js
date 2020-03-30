@@ -3,7 +3,8 @@
 import { CategoriesMapModel, CityModel, EventModel, LanguageModel } from '@integreat-app/integreat-api-client'
 import type { CategoryRouteConfigType, LanguageResourceCacheStateType } from './StateType'
 import type { ContentLoadCriterionType } from '../endpoint/ContentLoadCriterion'
-import type { TFunction } from 'i18next'
+import type { TFunction } from 'react-i18next'
+import type { ErrorCodeType } from '../error/ErrorCodes'
 
 export type FetchCitiesActionType = {|
   type: 'FETCH_CITIES',
@@ -14,7 +15,7 @@ export type PushCitiesActionType = {|
 |}
 export type FetchCitiesFailedActionType = {|
   type: 'FETCH_CITIES_FAILED', +params: {|
-    +message: string
+    +message: string, +code: ErrorCodeType
   |}
 |}
 export type CitiesActionType = PushCitiesActionType | FetchCitiesActionType | FetchCitiesFailedActionType
@@ -23,6 +24,13 @@ export type PushLanguagesActionType = {|
   type: 'PUSH_LANGUAGES',
   +params: {|
     +languages: $ReadOnlyArray<LanguageModel>
+  |}
+|}
+export type FetchLanguagesFailedActionType = {|
+  type: 'FETCH_LANGUAGES_FAILED',
+  +params: {|
+    +message: string,
+    +code: ErrorCodeType
   |}
 |}
 
@@ -44,6 +52,7 @@ export type FetchCategoryFailedActionType = {|
     +key: string,
     ...CategoryRouteConfigType,
     +message: string,
+    +code: ErrorCodeType,
     +allAvailableLanguages: $ReadOnlyMap<string, ?string> | null
   |}
 |}
@@ -94,6 +103,7 @@ export type FetchEventFailedActionType = {|
   type: 'FETCH_EVENT_FAILED',
   +params: {|
     +message: string,
+    +code: ErrorCodeType,
     +key: string,
     +allAvailableLanguages: ?$ReadOnlyMap<string, ?string>,
     +language: string,
@@ -139,7 +149,8 @@ export type ClearCityActionType = {|
 export type ResourcesFetchFailedActionType = {|
   type: 'FETCH_RESOURCES_FAILED',
   +params: {|
-    +message: string
+    +message: string,
+    +code: ErrorCodeType
   |}
 |}
 
@@ -150,10 +161,15 @@ export type CityContentActionType =
   | ContentLanguageActionType
   | ClearCityActionType
   | PushLanguagesActionType
+  | FetchLanguagesFailedActionType
   | ResourcesFetchFailedActionType
 
 export type ToggleDarkModeActionType = {|
   type: 'TOGGLE_DARK_MODE'
+|}
+
+export type ClearResourcesAndCacheActionType = {|
+  type: 'CLEAR_RESOURCES_AND_CACHE'
 |}
 
 export type StoreActionType =
@@ -161,3 +177,4 @@ export type StoreActionType =
   | CitiesActionType
   | CityContentActionType
   | SetContentLanguageActionType
+  | ClearResourcesAndCacheActionType

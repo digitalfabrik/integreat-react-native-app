@@ -10,7 +10,7 @@ import waitForExpect from 'wait-for-expect'
 jest.mock('@react-native-community/async-storage')
 
 let mockCreateAppNavigationContainer: JestMockFn<*, *>
-jest.mock('../../createAppNavigationContainer', () => {
+jest.mock('../../createAppContainer', () => {
   mockCreateAppNavigationContainer = jest.fn(({ initialRouteName }) => {
     const Text = require('react-native').Text
     return () => <Text>AppContainerOf({initialRouteName})</Text>
@@ -34,10 +34,11 @@ describe('Navigator', () => {
     })
   })
 
-  it('should display CityContent and call fetchCategory if a city is selected in settings', async () => {
+  it('should display CityContent and call fetchCategory if a city is selected and the intro was shown', async () => {
     const appSettings = new AppSettings()
     await appSettings.setSelectedCity('augsburg')
     await appSettings.setContentLanguage('de')
+    await appSettings.setIntroShown()
     const clearCategory = jest.fn()
     const fetchCategory = jest.fn()
 
@@ -58,16 +59,29 @@ describe('Navigator', () => {
     })
   })
 
-  it('should display Landing if no city is selected in settings', async () => {
+  it('should display Landing if no city is selected in settings and intro was shown', async () => {
     const appSettings = new AppSettings()
     await appSettings.clearSelectedCity()
     await appSettings.setContentLanguage('de')
+    await appSettings.setIntroShown()
 
     const { getByText } = render(<Navigator fetchCities={() => {}} fetchCategory={() => {}} clearCategory={() => {}} />)
     await waitForExpect(() => {
       expect(mockCreateAppNavigationContainer).toHaveBeenCalledTimes(1)
       expect(mockCreateAppNavigationContainer).toHaveBeenCalledWith({ initialRouteName: 'Landing' })
       expect(getByText('AppContainerOf(Landing)')).toBeTruthy()
+    })
+  })
+
+  it('should display Intro if intro was not shown yet', async () => {
+    const appSettings = new AppSettings()
+    await appSettings.setContentLanguage('de')
+
+    const { getByText } = render(<Navigator fetchCities={() => {}} fetchCategory={() => {}} clearCategory={() => {}} />)
+    await waitForExpect(() => {
+      expect(mockCreateAppNavigationContainer).toHaveBeenCalledTimes(1)
+      expect(mockCreateAppNavigationContainer).toHaveBeenCalledWith({ initialRouteName: 'Intro' })
+      expect(getByText('AppContainerOf(Intro)')).toBeTruthy()
     })
   })
 

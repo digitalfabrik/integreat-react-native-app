@@ -3,7 +3,8 @@
 import * as React from 'react'
 import { CategoriesMapModel, CategoryModel } from '@integreat-app/integreat-api-client'
 import CategoryList from '../../../modules/categories/components/CategoryList'
-import styled, { type StyledComponent } from 'styled-components/native'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
 import SearchHeader from './SearchHeader'
 import { ActivityIndicator, ScrollView, View } from 'react-native'
 import type { NavigationScreenProp } from 'react-navigation'
@@ -80,6 +81,8 @@ class SearchModal extends React.Component<PropsType, StateType> {
     const { language, theme, categories, t, sendFeedback } = this.props
     const { query } = this.state
 
+    const minHeight = theme.dimensions.categoryListItem.iconSize + theme.dimensions.categoryListItem.margin * 2
+
     if (!categories) {
       return <ActivityIndicator size='large' color='#0000ff' />
     }
@@ -87,8 +90,13 @@ class SearchModal extends React.Component<PropsType, StateType> {
     const filteredCategories = this.findCategories(categories)
     return <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <SpaceBetween>
-        <View><CategoryList categories={filteredCategories} query={query} onItemPress={this.onItemPress}
-                            theme={theme} language={language} /></View>
+        {/* The minHeight is needed to circumvent a bug that appears when there is only one search result.
+              See NATIVE-430 for reference. */}
+        <View style={{ minHeight: minHeight }}>
+          <CategoryList categories={filteredCategories} query={query}
+                        onItemPress={this.onItemPress}
+                        theme={theme} language={language} />
+        </View>
         <SearchFeedbackBox t={t} query={query} theme={theme} resultsFound={filteredCategories.length !== 0}
                            sendFeedback={sendFeedback} />
       </SpaceBetween>

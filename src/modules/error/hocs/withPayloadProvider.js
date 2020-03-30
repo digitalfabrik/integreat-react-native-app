@@ -10,13 +10,15 @@ import { type Dispatch } from 'redux'
 import { wrapDisplayName } from 'recompose'
 import FailureContainer from '../containers/FailureContainer'
 import { LOADING_TIMEOUT } from '../../common/constants'
+import type { ErrorCodeType } from '../ErrorCodes'
 
 export type RouteNotInitializedType = {| status: 'routeNotInitialized' |}
 export type LoadingType = {| status: 'loading' |}
-export type ErrorType<R> = {|
+export type ErrorType<R: {}> = {|
   status: 'error',
-  message: string,
-  refreshProps: R
+  message: ?string,
+  code: ErrorCodeType,
+  refreshProps: R | null
 |}
 
 export type LanguageNotAvailableType = {|
@@ -26,25 +28,25 @@ export type LanguageNotAvailableType = {|
   changeUnavailableLanguage: (dispatch: Dispatch<StoreActionType>, newLanguage: string) => void
 |}
 
-export type SuccessType<S, R> = {|
+export type SuccessType<S: {}, R: {}> = {|
   status: 'success',
   innerProps: S,
   refreshProps: R
 |}
 
-export type StatusPropsType<S, R> =
+export type StatusPropsType<S: {}, R: {}> =
   RouteNotInitializedType
   | LoadingType
   | ErrorType<R>
   | LanguageNotAvailableType
   | SuccessType<$Diff<S, { dispatch: Dispatch<StoreActionType> }>, R>
 
-export type PropsType<S: { dispatch: Dispatch<StoreActionType> }, R> = {|
+export type PropsType<S: { dispatch: Dispatch<StoreActionType> }, R: {}> = {|
   ...StatusPropsType<S, R>,
   dispatch: Dispatch<StoreActionType>
 |}
 
-const withPayloadProvider = <S: { dispatch: Dispatch<StoreActionType> }, R> (
+const withPayloadProvider = <S: { dispatch: Dispatch<StoreActionType> }, R: {}> (
   refresh: (refreshProps: R, dispatch: Dispatch<StoreActionType>) => void
 ): ((Component: React.ComponentType<S>) => React.ComponentType<PropsType<S, R>>) => {
   return (Component: React.ComponentType<S>): React.ComponentType<PropsType<S, R>> => {
@@ -59,10 +61,13 @@ const withPayloadProvider = <S: { dispatch: Dispatch<StoreActionType> }, R> (
 
       refresh = () => {
         const props = this.props
-        if (props.status === 'routeNotInitialized' || props.status === 'loading' || props.status === 'languageNotAvailable') {
+        if (props.status === 'routeNotInitialized' || props.status === 'loading' ||
+          props.status === 'languageNotAvailable') {
           throw Error('Refreshing is not possible because the route is not yet initialized or already loading.')
         }
-        refresh(props.refreshProps, props.dispatch)
+        if (props.refreshProps) {
+          refresh(props.refreshProps, props.dispatch)
+        }
       }
 
       changeUnavailableLanguage = (newLanguage: string) => {
@@ -79,7 +84,7 @@ const withPayloadProvider = <S: { dispatch: Dispatch<StoreActionType> }, R> (
         } else if (props.status === 'error') {
           return <ScrollView refreshControl={<RefreshControl onRefresh={this.refresh} refreshing={false} />}
                              contentContainerStyle={{ flexGrow: 1 }}>
-            <FailureContainer tryAgain={this.refresh} errorMessage={props.message} />
+            <FailureContainer tryAgain={this.refresh} message={props.message} code={props.code} />
           </ScrollView>
         } else if (props.status === 'languageNotAvailable') {
           return <LanguageNotAvailableContainer languages={props.availableLanguages}

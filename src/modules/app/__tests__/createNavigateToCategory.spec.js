@@ -31,7 +31,7 @@ describe('createNavigateToCategory', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(expect.objectContaining({
       key: expect.stringMatching(/^.{6,}$/) // at least 6 chars but no newline
     }))
-    const key = navigation.navigate.mock.calls[0][0].key
+    const key = (navigation.navigate: any).mock.calls[0][0].key
     expect(dispatch).toHaveBeenCalledWith({
       type: 'FETCH_CATEGORY',
       params: expect.objectContaining({ key })
@@ -52,7 +52,8 @@ describe('createNavigateToCategory', () => {
       })
     }))
 
-    const key = navigation.navigate.mock.calls[0][0].key
+    const key = (navigation.navigate: any).mock.calls[0][0].key
+    // $FlowFixMe .mock is missing
     navigation.navigate.mock.calls[0][0].params.onRouteClose()
     expect(dispatch).toHaveBeenLastCalledWith({
       type: 'CLEAR_CATEGORY', params: { key }
@@ -71,13 +72,13 @@ describe('createNavigateToCategory', () => {
     }))
   })
 
-  it('should dispatch a FETCH_CATEGORY action while never refreshing resources', () => {
+  it('should dispatch a FETCH_CATEGORY action and refresh resources on force refresh', () => {
     const dispatch = jest.fn()
     const navigation = createNavigationScreenPropMock()
 
     const navigateToCategory = createNavigateToCategory('Categories', dispatch, navigation)
     navigateToCategory({
-      cityCode: 'augsburg', language: 'de', path: '/augsburg/de/schule', key: 'route-id-1', forceUpdate: true
+      cityCode: 'augsburg', language: 'de', path: '/augsburg/de/schule', key: 'route-id-1', forceRefresh: true
     })
 
     expect(dispatch).toHaveBeenCalledWith({
@@ -88,7 +89,7 @@ describe('createNavigateToCategory', () => {
         path: '/augsburg/de/schule',
         depth: 2,
         key: 'route-id-1',
-        criterion: { forceUpdate: true, shouldRefreshResources: false }
+        criterion: { forceUpdate: true, shouldRefreshResources: true }
       }
     })
   })

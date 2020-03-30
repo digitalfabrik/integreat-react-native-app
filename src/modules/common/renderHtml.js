@@ -3,9 +3,40 @@
 import { getFontFaceSource, URL_PREFIX } from '../platform/constants/webview'
 import type { PageResourceCacheStateType } from '../app/StateType'
 import type { ThemeType } from '../theme/constants/theme'
+import { RTL_LANGUAGES } from '../i18n/constants'
 
 // language=JavaScript
 const renderJS = (files: PageResourceCacheStateType) => `
+// Catching occurring errors
+(function() {
+  function reportError (message) {
+    if (!window.ReactNativeWebView) {
+      return window.setTimeout(function() { reportError(message) }, 100)
+    }
+
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: "error", message: message }))
+  };
+  
+  window.onerror = function(msg, url, lineNo, columnNo, error) {
+    // from https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
+    var string = msg.toLowerCase()
+    var substring = "script error"
+    if (string.indexOf(substring) > -1){
+      reportError('Script Error: See Browser Console for Detail: '  + msg + JSON.stringify(error))
+    } else {
+      var message = [
+        'Message: ' + msg,
+        'URL: ' + url,
+        'Line: ' + lineNo,
+        'Column: ' + columnNo,
+        'Error object: ' + JSON.stringify(error)
+      ].join(' - ')
+      reportError(message)
+    }
+    return false
+  };
+})();
+
 (function() {
   var hrefs = document.querySelectorAll('[href]')
   var srcs = document.querySelectorAll('[src]')
@@ -43,22 +74,23 @@ const renderJS = (files: PageResourceCacheStateType) => `
     if (!window.ReactNativeWebView){
       return window.setTimeout(adjustHeight, 100);
     }
-
-    window.ReactNativeWebView.postMessage(container.getBoundingClientRect().height - 2);
+    
+    var height = container.getBoundingClientRect().height - 2
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'height', height: height }));
     container.setAttribute('style', '');
-  }
+  };
   
   window.addEventListener('load', adjustHeight);
   window.addEventListener('resize', adjustHeight);
 })();
 `
 
-export default (html: string, files: PageResourceCacheStateType, theme: ThemeType, direction: 'rtl' | 'ltr') => {
-  // language=HTML
-  return `
-<html>
+// language=HTML
+const renderHtml = (html: string, files: PageResourceCacheStateType, theme: ThemeType, language: string) => `
+<!-- The lang attribute makes TalkBack use the appropriate language. -->
+<html lang="${language}">
 <head>
-  <!-- disables zooming https://stackoverflow.com/questions/44625680/disable-zoom-on-web-view-react-native-->
+  <!-- disables zooming https://stackoverflow.com/questions/44625680/disable-zoom-on-web-view-react-native -->
   <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
   <style>
     @font-face {
@@ -91,11 +123,11 @@ export default (html: string, files: PageResourceCacheStateType, theme: ThemeTyp
       font-weight: 400;
       src: ${getFontFaceSource('Lateef')};
     }
-   
+
     html, body {
         margin: 0;
         padding: 0;
-        
+
         font-family: ${theme.fonts.webviewFontFamilies};
         font-size: ${theme.fonts.contentFontSize};
         line-height: ${theme.fonts.contentLineHeight};
@@ -106,11 +138,11 @@ export default (html: string, files: PageResourceCacheStateType, theme: ThemeTyp
         list-style-position: inside;
         \`} */
     }
-    
+
     p {
       margin: ${theme.fonts.standardParagraphMargin} 0;
     }
-    
+
     img {
       max-width: 100%;
       max-height: 100%;
@@ -152,10 +184,11 @@ export default (html: string, files: PageResourceCacheStateType, theme: ThemeTyp
     }
   </style>
 </head>
-<body dir="${direction}">
+<body dir="${RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr'}">
   <div id="measure-container">${html}</div>
   <script>${renderJS(files)}</script>
 </body>
 </html>
 `
-}
+
+export default renderHtml

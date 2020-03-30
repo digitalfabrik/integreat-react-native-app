@@ -1,5 +1,5 @@
-// flow-typed signature: ea5cb9dfe7dceda7305dd7cb03175302
-// flow-typed version: 94e9f7e0a4/is-url_v1.x.x/flow_>=v0.25.x
+// flow-typed signature: 973b6eb447c3951be710fcd33a5ffbdd
+// flow-typed version: c6154227d1/is-url_v1.x.x/flow_>=v0.104.x
 
 declare module 'is-url' {
   declare module.exports: (url: string) => boolean

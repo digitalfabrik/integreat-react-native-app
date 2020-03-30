@@ -2,7 +2,11 @@
 
 import { CategoriesMapModel, CityModel, EventModel, LanguageModel } from '@integreat-app/integreat-api-client'
 import DatabaseContext from './DatabaseContext'
-import type { CityResourceCacheStateType, PageResourceCacheStateType, LanguageResourceCacheStateType } from '../app/StateType'
+import type {
+  CityResourceCacheStateType,
+  PageResourceCacheStateType,
+  LanguageResourceCacheStateType
+} from '../app/StateType'
 import DatabaseConnector from './DatabaseConnector'
 import type { DataContainer } from './DataContainer'
 import type Moment from 'moment'
@@ -53,6 +57,14 @@ class DefaultDataContainer implements DataContainer {
         (value: Moment | null, connector: DatabaseConnector, context: DatabaseContext) =>
           connector.storeLastUpdate(value, context))
     }
+  }
+
+  clearInMemoryCache = () => {
+    Object.keys(this.caches).forEach(cache => this.caches[cache].evict())
+  }
+
+  clearOfflineCache = async () => {
+    await this._databaseConnector.deleteAllFiles()
   }
 
   isCached (key: CacheKeyType, context: DatabaseContext): boolean {
@@ -192,6 +204,10 @@ class DefaultDataContainer implements DataContainer {
   cityContentAvailable = async (city: string, language: string): Promise<boolean> => {
     return this.categoriesAvailable(city, language) && this.eventsAvailable(city, language) &&
       this.languagesAvailable(city)
+  }
+
+  storeLastUsage = async (city: string, peeking: boolean) => {
+    await this._databaseConnector.storeLastUsage(new DatabaseContext(city), peeking)
   }
 }
 

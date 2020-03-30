@@ -12,11 +12,11 @@ import type { StatusPropsType } from '../../../modules/error/hocs/withPayloadPro
 import withPayloadProvider from '../../../modules/error/hocs/withPayloadProvider'
 import { CityModel } from '@integreat-app/integreat-api-client'
 import withTheme from '../../../modules/theme/hocs/withTheme'
-import { translate } from 'react-i18next'
+import { withTranslation } from 'react-i18next'
 import withRouteCleaner from '../../../modules/endpoint/hocs/withRouteCleaner'
 import Categories from '../../../modules/categories/components/Categories'
 import React from 'react'
-import type { TFunction } from 'i18next'
+import type { TFunction } from 'react-i18next'
 import { mapProps } from 'recompose'
 
 type ContainerPropsType = {|
@@ -62,14 +62,19 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
     return { status: 'routeNotInitialized' }
   }
 
-  if (state.cities.status === 'loading' || switchingLanguage || route.status === 'loading' || !languages) {
+  if (state.cities.status === 'loading' || switchingLanguage || route.status === 'loading' ||
+    languages.status === 'loading') {
     return { status: 'loading' }
   }
 
   if (route.status === 'languageNotAvailable') {
+    if (languages.status === 'error') {
+      console.error('languageNotAvailable status impossible if languages not ready')
+      return { status: 'error', refreshProps: null, code: languages.code, message: languages.message }
+    }
     return {
       status: 'languageNotAvailable',
-      availableLanguages: languages.filter(lng => route.allAvailableLanguages.has(lng.code)),
+      availableLanguages: languages.models.filter(lng => route.allAvailableLanguages.has(lng.code)),
       cityCode: route.city,
       changeUnavailableLanguage: createChangeUnavailableLanguage(route.city, t)
     }
@@ -83,11 +88,13 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
   }
 
   if (state.cities.status === 'error') {
-    return { status: 'error', message: state.cities.message, refreshProps }
+    return { status: 'error', message: state.cities.message, code: state.cities.code, refreshProps }
   } else if (route.status === 'error') {
-    return { status: 'error', message: route.message, refreshProps }
+    return { status: 'error', message: route.message, code: route.code, refreshProps }
   } else if (resourceCache.status === 'error') {
-    return { status: 'error', message: resourceCache.message, refreshProps }
+    return { status: 'error', message: resourceCache.message, code: resourceCache.code, refreshProps }
+  } else if (languages.status === 'error') {
+    return { status: 'error', message: languages.message, code: languages.code, refreshProps }
   }
 
   return {
@@ -110,7 +117,7 @@ const refresh = (refreshProps: RefreshPropsType, dispatch: Dispatch<StoreActionT
   const { cityCode, language, path, navigation } = refreshProps
   const navigateToCategories = createNavigateToCategory('Categories', dispatch, navigation)
   navigateToCategories({
-    cityCode, language, path, forceUpdate: true, key: navigation.state.key
+    cityCode, language, path, forceRefresh: true, key: navigation.state.key
   })
 }
 
@@ -125,7 +132,7 @@ class CategoriesContainer extends React.Component<ContainerPropsType> {
 }
 
 const ThemedTranslatedCategories = withTheme(props => props.language)(
-  translate('categories')(
+  withTranslation('categories')(
     Categories
   ))
 
@@ -136,7 +143,7 @@ const removeOwnProps = (props: PropsType): RestType => {
 }
 
 export default withRouteCleaner<{| navigation: NavigationScreenProp<*> |}>(
-  translate('error')(
+  withTranslation('error')(
     connect<PropsType, OwnPropsType, _, _, _, _>(mapStateToProps, mapDispatchToProps)(
       mapProps<RestType, PropsType>(removeOwnProps)(
         withPayloadProvider<ContainerPropsType, RefreshPropsType>(refresh)(

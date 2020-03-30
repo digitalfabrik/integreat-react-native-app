@@ -2,17 +2,16 @@
 
 import * as React from 'react'
 import { Text } from 'react-native'
-import styled, { type StyledComponent } from 'styled-components/native'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
 import type { ThemeType } from '../../theme/constants/theme'
 import { createHtmlSource, getResourceCacheFilesDirPath, URL_PREFIX } from '../../platform/constants/webview'
 import renderHtml from '../renderHtml'
-import { type DataDetectorTypes, WebView, type WebViewMessageEvent } from 'react-native-webview'
+import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import type { PageResourceCacheStateType } from '../../app/StateType'
-import type { WebViewNavigation } from 'react-native-webview/js/WebViewTypes'
+import type { WebViewNavigation } from 'react-native-webview/lib/WebViewTypes'
 import type { ViewLayoutEvent } from 'react-native/Libraries/Components/View/ViewPropTypes'
-import { RTL_LANGUAGES } from '../../i18n/constants'
 
-// see https://github.com/react-native-community/react-native-webview#common-issues
 const StyledView: StyledComponent<{}, {}, *> = styled.View`
   overflow: hidden;
   flex: 1;
@@ -45,10 +44,14 @@ class RemoteContent extends React.Component<PropType, StateType> {
     if (!event.nativeEvent) {
       return
     }
-    const height = parseFloat(event.nativeEvent.data)
-    this.setState({
-      webViewHeight: height
-    }, this.props.onLoad)
+    const message = JSON.parse(event.nativeEvent.data)
+    if (message.type === 'error') {
+      throw Error(`An error occurred in the webview:\n${message.message}`)
+    } else if (message.type === 'height' && typeof message.height === 'number') {
+      this.setState({ webViewHeight: message.height }, this.props.onLoad)
+    } else {
+      throw Error('Got an unknown message from the webview.')
+    }
   }
 
   onShouldStartLoadWithRequest = (event: WebViewNavigation) => {
@@ -70,28 +73,26 @@ class RemoteContent extends React.Component<PropType, StateType> {
     const { content, files, theme, cityCode, language } = this.props
     const height = this.state.webViewHeight
     const width = this.state.webViewWidth
-    const dataDetectorTypes: DataDetectorTypes = 'all'
     return <StyledView onLayout={this.onLayout}>
-      {// $FlowFixMe dataDetectorTypes (correct types, but Flow doesn't try the right branch)
-        <WebView
-          source={createHtmlSource(renderHtml(content, files, theme, RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr'),
-            URL_PREFIX + getResourceCacheFilesDirPath(cityCode))}
-          allowFileAccess // Needed by android to access file:// urls
-          originWhitelist={['*']} // Needed by iOS to load the initial html
-          useWebKit={false}
-          javaScriptEnabled
+      <WebView
+        source={createHtmlSource(renderHtml(content, files, theme, language),
+          URL_PREFIX + getResourceCacheFilesDirPath(cityCode))}
+        allowFileAccess // Needed by android to access file:// urls
+        originWhitelist={['*']} // Needed by iOS to load the initial html
+        javaScriptEnabled
+        useWebKit={false}
 
-          dataDetectorTypes={dataDetectorTypes}
-          domStorageEnabled={false}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
+        dataDetectorTypes='all'
+        domStorageEnabled={false}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        scrollEnabled={false} // to disable scrolling in iOS
 
-          onMessage={this.onMessage}
-          style={{ height: height, width: width }}
-          renderError={this.renderError}
-          bounces={false}
-          onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
-        />}
+        onMessage={this.onMessage}
+        style={{ height, width }}
+        renderError={this.renderError}
+        onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+      />
     </StyledView>
   }
 }

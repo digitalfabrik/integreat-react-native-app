@@ -26,7 +26,7 @@ class EventListItem extends React.PureComponent<PropsType> {
    * We have three placeholder thumbnails to display when cities don't provide a thumbnail
    * @returns {*} The Placeholder Thumbnail
    */
-  getEventPlaceholder (id: number): number {
+  getEventPlaceholder (id: number): string {
     const placeholders = [EventPlaceholder1, EventPlaceholder2, EventPlaceholder3]
     return placeholders[id % placeholders.length]
   }
@@ -41,7 +41,7 @@ class EventListItem extends React.PureComponent<PropsType> {
                 navigateTo={navigateToEvent}
                 theme={theme}>
         <Description theme={theme}>{event.date.toFormattedString(language)}</Description>
-        <Description theme={theme}>{event.location.location}</Description>
+        {event.location.location && <Description theme={theme}>{event.location.location}</Description>}
       </ListItem>
     )
   }

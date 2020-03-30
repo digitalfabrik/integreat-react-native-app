@@ -1,14 +1,15 @@
 // @flow
 
 import * as React from 'react'
+import EastereggImage from './EastereggImage'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
+import type { ThemeType } from '../../../modules/theme/constants/theme'
 
-import LocationBig from '../assets/LocationBig.png'
-import styled, { type StyledComponent } from 'styled-components/native'
-
-const LocationImage = styled.Image`
-  height: 70px;
-  resize-mode: contain;
-`
+type PropsType = {|
+  clearResourcesAndCache: () => void,
+  theme: ThemeType
+|}
 
 const Wrapper: StyledComponent<{| children: React.Node |}, {}, *> = styled.View`
   display: flex;
@@ -16,11 +17,12 @@ const Wrapper: StyledComponent<{| children: React.Node |}, {}, *> = styled.View`
   align-items: center;
 `
 
-class Heading extends React.Component<{||}> {
+class Heading extends React.Component<PropsType> {
   render () {
+    const { clearResourcesAndCache, theme } = this.props
     return (
       <Wrapper>
-        <LocationImage source={LocationBig} />
+        <EastereggImage clearResourcesAndCache={clearResourcesAndCache} theme={theme} />
       </Wrapper>
     )
   }

@@ -2,12 +2,13 @@
 
 import DatabaseConnector from '../DatabaseConnector'
 import DatabaseContext from '../DatabaseContext'
-import moment from 'moment-timezone'
+import moment from 'moment'
 import RNFetchBlob from '../../../__mocks__/rn-fetch-blob'
 import CityModelBuilder from '../../../testing/builder/CityModelBuilder'
 import CategoriesMapModelBuilder from '../../../testing/builder/CategoriesMapModelBuilder'
 import LanguageModelBuilder from '../../../testing/builder/LanguageModelBuilder'
 import EventModelBuilder from '../../../testing/builder/EventModelBuilder'
+import mockDate from '../../../testing/mockDate'
 
 jest.mock('rn-fetch-blob')
 const databaseConnector = new DatabaseConnector()
@@ -27,27 +28,27 @@ describe('DatabaseConnector', () => {
   const testEvents = new EventModelBuilder('testSeed', 2, city, language).build()
 
   const testResources = {
-    'de':
-    {
-      '/path/to/page':
+    de:
       {
-        'https://test.de/path/to/resource/test.png':
-        {
-          filePath: '/local/path/to/resource/b4b5dca65e423.png',
-          lastUpdate: moment('2011-02-04T00:00:00.000Z'),
-          hash: 'testHash'
-        }
-      },
-      '/path/to/page/child':
-      {
-        'https://test.de/path/to/resource/test2.jpg':
-        {
-          filePath: '/local/path/to/resource/970c65c41eac0.jpg',
-          lastUpdate: moment('2011-05-04T00:00:00.000Z'),
-          hash: 'testHash'
-        }
+        '/path/to/page':
+          {
+            'https://test.de/path/to/resource/test.png':
+              {
+                filePath: '/local/path/to/resource/b4b5dca65e423.png',
+                lastUpdate: moment('2011-02-04T00:00:00.000Z'),
+                hash: 'testHash'
+              }
+          },
+        '/path/to/page/child':
+          {
+            'https://test.de/path/to/resource/test2.jpg':
+              {
+                filePath: '/local/path/to/resource/970c65c41eac0.jpg',
+                lastUpdate: moment('2011-05-04T00:00:00.000Z'),
+                hash: 'testHash'
+              }
+          }
       }
-    }
   }
 
   describe('isCitiesPersisted', () => {
@@ -75,8 +76,8 @@ describe('DatabaseConnector', () => {
   })
 
   describe('loadCities', () => {
-    it('should throw exception if cities are not persisted', () => {
-      expect(databaseConnector.loadCities()).rejects.toThrowError()
+    it('should throw exception if cities are not persisted', async () => {
+      await expect(databaseConnector.loadCities()).rejects.toThrowError()
     })
     it('should return a value that matches the one that was stored', async () => {
       await databaseConnector.storeCities(testCities)
@@ -92,49 +93,61 @@ describe('DatabaseConnector', () => {
       const moment = await databaseConnector.loadLastUpdate(context)
       expect(moment).toBeNull()
     })
-    it('should throw error if currentCity in context is null', () => {
-      const context = new DatabaseContext(null, 'de')
-      expect(databaseConnector.loadLastUpdate(context)).rejects.toThrowError()
+    it('should return null if persisted data is malformatted for a given city-language pair', async () => {
+      const context = new DatabaseContext('tcc', 'de')
+      RNFetchBlob.fs.writeFile(databaseConnector.getMetaCitiesPath(), '{ "i": "am": "malformatted" } }', 'utf8')
+      const moment = await databaseConnector.loadLastUpdate(context)
+      expect(moment).toBeNull()
     })
-    it('should throw error if currentLanguage is null', () => {
+    it('should throw error if currentCity in context is null', async () => {
+      const context = new DatabaseContext(null, 'de')
+      await expect(databaseConnector.loadLastUpdate(context)).rejects.toThrowError()
+    })
+    it('should throw error if currentLanguage is null', async () => {
       const context = new DatabaseContext('tcc', null)
-      expect(databaseConnector.loadLastUpdate(context)).rejects.toThrowError()
+      await expect(databaseConnector.loadLastUpdate(context)).rejects.toThrowError()
     })
     it('should return a moment that matches the one that was stored', async () => {
       const context = new DatabaseContext('tcc', 'de')
 
-      const dateExpected = moment.tz('20110205', 'UTC')
+      const dateExpected = moment('2011-05-04T00:00:00.000Z')
 
+      await databaseConnector.storeLastUsage(context, false)
       await databaseConnector.storeLastUpdate(dateExpected, context)
-      const dateReceived = await databaseConnector.loadLastUpdate(context)
-
-      expect(dateExpected.isSame(dateReceived)).toBe(true)
+      expect(dateExpected).toStrictEqual(await databaseConnector.loadLastUpdate(context))
     })
   })
 
   describe('storeLastUpdate', () => {
-    it('should throw error if currentCity in context is null', () => {
+    it('should throw error if currentCity in context is null', async () => {
       const context = new DatabaseContext(null, 'de')
-      const date = moment.tz('20110205', 'UTC')
-      expect(databaseConnector.storeLastUpdate(date, context)).rejects.toThrowError()
+      const date = moment('2011-05-04T00:00:00.000Z')
+      await expect(databaseConnector.storeLastUpdate(date, context)).rejects.toThrowError()
     })
-    it('should throw error if currentLanguage in context is null', () => {
+    it('should throw error if currentLanguage in context is null', async () => {
       const context = new DatabaseContext('tcc', null)
-      const date = moment.tz('20110205', 'UTC')
-      expect(databaseConnector.storeLastUpdate(date, context)).rejects.toThrowError()
+      const date = moment('2011-05-04T00:00:00.000Z')
+      await expect(databaseConnector.storeLastUpdate(date, context)).rejects.toThrowError()
+    })
+    it('should throw error if meta of city is null', async () => {
+      const context = new DatabaseContext('tcc', null)
+      const date = moment('2011-05-04T00:00:00.000Z')
+      await expect(databaseConnector.storeLastUpdate(date, context)).rejects.toThrowError()
     })
     it('should override multiple lastUpdates of the same context', async () => {
       const context = new DatabaseContext('tcc', 'de')
-      const date = moment.tz('20110205', 'UTC')
-      const date2 = moment.tz('20120205', 'UTC')
+      const date = moment('2011-05-04T00:00:00.000Z')
+      const date2 = moment('2012-05-04T00:00:00.000Z')
+      await databaseConnector.storeLastUsage(context, false)
       await databaseConnector.storeLastUpdate(date, context)
       await databaseConnector.storeLastUpdate(date2, context)
-      const result = await databaseConnector.loadLastUpdate(context)
-      expect(date2.isSame(moment(result))).toBe(true)
+
+      expect(date2).toStrictEqual(await databaseConnector.loadLastUpdate(context))
     })
     it('should store the json file in the correct path', async () => {
       const context = new DatabaseContext('tcc', 'de')
-      const date = moment.tz('20110205', 'UTC')
+      const date = moment('2011-05-04T00:00:00.000Z')
+      await databaseConnector.storeLastUsage(context, false)
       await databaseConnector.storeLastUpdate(date, context)
       expect(RNFetchBlob.fs.writeFile).toBeCalledWith(
         expect.stringContaining('cities-meta.json'),
@@ -171,9 +184,9 @@ describe('DatabaseConnector', () => {
   })
 
   describe('loadCategories', () => {
-    it('should throw error if categories are not persisted', () => {
+    it('should throw error if categories are not persisted', async () => {
       const context = new DatabaseContext('tcc', 'de')
-      expect(databaseConnector.loadCategories(context)).rejects.toThrowError()
+      await expect(databaseConnector.loadCategories(context)).rejects.toThrowError()
     })
     it('should return a value that matches the one that was stored', async () => {
       const context = new DatabaseContext('tcc', 'de')
@@ -211,9 +224,9 @@ describe('DatabaseConnector', () => {
   })
 
   describe('loadLanguages', () => {
-    it('should throw error if languages are not persisted', () => {
+    it('should throw error if languages are not persisted', async () => {
       const context = new DatabaseContext('tcc', 'de')
-      expect(databaseConnector.loadLanguages(context)).rejects.toThrowError()
+      await expect(databaseConnector.loadLanguages(context)).rejects.toThrowError()
     })
     it('should return a value that matches the one that was stored', async () => {
       const context = new DatabaseContext('tcc', 'de')
@@ -251,9 +264,9 @@ describe('DatabaseConnector', () => {
   })
 
   describe('loadEvents', () => {
-    it('should throw error if events are not persisted', () => {
+    it('should throw error if events are not persisted', async () => {
       const context = new DatabaseContext('tcc', 'de')
-      expect(databaseConnector.loadEvents(context)).rejects.toThrowError()
+      await expect(databaseConnector.loadEvents(context)).rejects.toThrowError()
     })
     it('should return a value that matches the one that was stored', async () => {
       const context = new DatabaseContext('tcc', 'de')
@@ -290,6 +303,269 @@ describe('DatabaseConnector', () => {
 
       const cache = await databaseConnector.loadResourceCache(context)
       expect(cache).toEqual(testResources)
+    })
+  })
+
+  const expectExists = async (path: string, exists: boolean = true) => {
+    const doesExist = await RNFetchBlob.fs.exists(path)
+    expect(doesExist).toBe(exists)
+  }
+
+  const expectCityFilesExist = async (city: string, exists: boolean = true) => {
+    const context = new DatabaseContext(city)
+    const resourcePath = databaseConnector.getResourceCachePath(context)
+    await expectExists(resourcePath, exists)
+    const contentPath = databaseConnector.getContentPath('categories', context)
+    await expectExists(contentPath, exists)
+  }
+
+  const populateCityContent = async (city: string) => {
+    const context = new DatabaseContext(city)
+    await databaseConnector.storeResourceCache(testResources, context)
+    await databaseConnector.storeCategories(testCategoriesMap, context)
+  }
+
+  describe('storeLastUsage', () => {
+    it('should store the usage of the passed city', async () => {
+      const date = moment('2014-05-04T00:00:00.000Z')
+      const { restoreDate } = mockDate(date)
+
+      const context = new DatabaseContext('augsburg')
+      await databaseConnector.storeLastUsage(context, false)
+
+      expect(JSON.parse(await RNFetchBlob.fs.readFile(databaseConnector.getMetaCitiesPath(), '')))
+        .toEqual({ augsburg: { last_usage: date.toISOString(), languages: {} } })
+
+      restoreDate()
+    })
+
+    it('should not delete old cities if peeking', async () => {
+      await populateCityContent('muenchen')
+      await populateCityContent('dortmund')
+      await populateCityContent('ansbach')
+      await populateCityContent('regensburg')
+
+      // We have to write this manually, since this is normally done in storeLastUsage, but it calls deleteOldFiles
+      await RNFetchBlob.fs.writeFile(databaseConnector.getMetaCitiesPath(), JSON.stringify({
+        muenchen: {
+          languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+        },
+        dortmund: {
+          languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+        },
+        ansbach: {
+          languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+        }
+      }), '')
+
+      const { restoreDate } = mockDate(moment('2013-05-04T00:00:00.000Z'))
+      await databaseConnector.storeLastUsage(new DatabaseContext('regensburg'), true)
+
+      await expectCityFilesExist('muenchen')
+      await expectCityFilesExist('dortmund')
+      await expectCityFilesExist('ansbach')
+      await expectCityFilesExist('regensburg')
+
+      expect(JSON.parse(await RNFetchBlob.fs.readFile(databaseConnector.getMetaCitiesPath(), '')))
+        .toEqual({
+          muenchen: {
+            languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+          },
+          ansbach: {
+            languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+          },
+          dortmund: {
+            languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+          },
+          regensburg: {
+            languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+          }
+        })
+
+      restoreDate()
+    })
+
+    it('should delete old files if there are more than MAX_STORED_CITIES and not peeking', async () => {
+      await populateCityContent('muenchen')
+      await populateCityContent('dortmund')
+      await populateCityContent('ansbach')
+      await populateCityContent('regensburg')
+
+      // We have to write this manually, since this is normally done in storeLastUsage, but it calls deleteOldFiles
+      await RNFetchBlob.fs.writeFile(databaseConnector.getMetaCitiesPath(), JSON.stringify({
+        muenchen: {
+          languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+        },
+        dortmund: {
+          languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+        },
+        ansbach: {
+          languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+        }
+      }), '')
+
+      const { restoreDate } = mockDate(moment('2013-05-04T00:00:00.000Z'))
+      await databaseConnector.storeLastUsage(new DatabaseContext('regensburg'), false)
+
+      await expectCityFilesExist('muenchen', false)
+      await expectCityFilesExist('dortmund')
+      await expectCityFilesExist('ansbach')
+      await expectCityFilesExist('regensburg')
+
+      expect(JSON.parse(await RNFetchBlob.fs.readFile(databaseConnector.getMetaCitiesPath(), '')))
+        .toEqual({
+          ansbach: {
+            languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+          },
+          dortmund: {
+            languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+          },
+          regensburg: {
+            languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+          }
+        })
+      restoreDate()
+    })
+    it('should override if persisted data is malformatted for a given city-language pair', async () => {
+      const context = new DatabaseContext('tcc', 'de')
+      const path = databaseConnector.getMetaCitiesPath()
+      RNFetchBlob.fs.writeFile(path, '{ "i": "am": "malformatted" } }', 'utf8')
+      const { restoreDate } = mockDate(moment('2013-05-04T00:00:00.000Z'))
+      await databaseConnector.storeLastUsage(context, false)
+      expect(JSON.parse(await RNFetchBlob.fs.readFile(path, 'utf8'))).toEqual({
+        tcc: { languages: {}, last_usage: '2013-05-04T00:00:00.000Z' }
+      })
+      restoreDate()
+    })
+  })
+
+  describe('loadLastUsages', () => {
+    it('should load last usages', async () => {
+      await RNFetchBlob.fs.writeFile(databaseConnector.getMetaCitiesPath(), JSON.stringify({
+        muenchen: {
+          languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+        },
+        dortmund: {
+          languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+        },
+        ansbach: {
+          languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+        },
+        augsburg: {
+          languages: {}, last_usage: '2014-05-04T00:00:00.000Z'
+        },
+        regensburg: {
+          languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+        }
+      }), '')
+
+      expect(await databaseConnector.loadLastUsages()).toEqual([
+        { city: 'muenchen', lastUsage: moment('2010-05-04T00:00:00.000Z') },
+        { city: 'dortmund', lastUsage: moment('2011-05-04T00:00:00.000Z') },
+        { city: 'ansbach', lastUsage: moment('2012-05-04T00:00:00.000Z') },
+        { city: 'augsburg', lastUsage: moment('2014-05-04T00:00:00.000Z') },
+        { city: 'regensburg', lastUsage: moment('2013-05-04T00:00:00.000Z') }
+      ])
+    })
+
+    it('should return empty array if persisted data is malformatted', async () => {
+      const path = databaseConnector.getMetaCitiesPath()
+      RNFetchBlob.fs.writeFile(path, '{ "i": "am": "malformatted" } }', 'utf8')
+      const usages = await databaseConnector.loadLastUsages()
+      expect(usages).toEqual([])
+    })
+  })
+
+  describe('deleteOldFiles', () => {
+    it('should keep only the maximal number of caches and files', async () => {
+      await populateCityContent('muenchen')
+      await populateCityContent('dortmund')
+      await populateCityContent('ansbach')
+      await populateCityContent('regensburg')
+      await populateCityContent('augsburg')
+
+      // We have to write this manually, since this is normally done in storeLastUsage, but it calls deleteOldFiles
+      await RNFetchBlob.fs.writeFile(databaseConnector.getMetaCitiesPath(), JSON.stringify({
+        muenchen: {
+          languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+        },
+        dortmund: {
+          languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+        },
+        ansbach: {
+          languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+        },
+        augsburg: {
+          languages: {}, last_usage: '2014-05-04T00:00:00.000Z'
+        },
+        regensburg: {
+          languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+        }
+      }), '')
+
+      await databaseConnector.deleteOldFiles(new DatabaseContext('augsburg'))
+
+      await expectCityFilesExist('muenchen', false)
+      await expectCityFilesExist('dortmund', false)
+      await expectCityFilesExist('ansbach')
+      await expectCityFilesExist('regensburg')
+      await expectCityFilesExist('augsburg')
+
+      expect(JSON.parse(await RNFetchBlob.fs.readFile(databaseConnector.getMetaCitiesPath(), '')))
+        .toEqual({
+          ansbach: {
+            languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+          },
+          augsburg: {
+            languages: {}, last_usage: '2014-05-04T00:00:00.000Z'
+          },
+          regensburg: {
+            languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+          }
+        })
+    })
+
+    it('should not delete the resource cache of the same city', async () => {
+      await populateCityContent('augsburg')
+      await populateCityContent('dortmund')
+      await populateCityContent('ansbach')
+      await populateCityContent('regensburg')
+
+      // We have to write this manually, since this is normally done in storeLastUsage, but it calls deleteOldFiles
+      await RNFetchBlob.fs.writeFile(databaseConnector.getMetaCitiesPath(), JSON.stringify({
+        augsburg: {
+          languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+        },
+        dortmund: {
+          languages: {}, last_usage: '2011-05-04T00:00:00.000Z'
+        },
+        ansbach: {
+          languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+        },
+        regensburg: {
+          languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+        }
+      }), '')
+
+      await databaseConnector.deleteOldFiles(new DatabaseContext('augsburg'))
+
+      await expectCityFilesExist('dortmund', false)
+      await expectCityFilesExist('ansbach')
+      await expectCityFilesExist('regensburg')
+      await expectCityFilesExist('augsburg')
+
+      expect(JSON.parse(await RNFetchBlob.fs.readFile(databaseConnector.getMetaCitiesPath(), '')))
+        .toEqual({
+          ansbach: {
+            languages: {}, last_usage: '2012-05-04T00:00:00.000Z'
+          },
+          augsburg: {
+            languages: {}, last_usage: '2010-05-04T00:00:00.000Z'
+          },
+          regensburg: {
+            languages: {}, last_usage: '2013-05-04T00:00:00.000Z'
+          }
+        })
     })
   })
 })

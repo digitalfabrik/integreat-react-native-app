@@ -5,8 +5,11 @@ import DefaultDataContainer from '../../DefaultDataContainer'
 import loadLanguages from '../loadLanguages'
 import RNFetchBlob from '../../../../__mocks__/rn-fetch-blob'
 import LanguageModelBuilder from '../../../../testing/builder/LanguageModelBuilder'
+import DatabaseContext from '../../DatabaseContext'
+import DatabaseConnector from '../../DatabaseConnector'
 
 let mockLanguages
+jest.mock('@react-native-community/async-storage')
 jest.mock('rn-fetch-blob')
 jest.mock('@integreat-app/integreat-api-client',
   () => {
@@ -60,5 +63,15 @@ describe('loadLanguages', () => {
     await runSaga({}, loadLanguages, city, dataContainer, false).toPromise()
 
     expect(await dataContainer.getLanguages(city)).toBe(otherLanguages)
+  })
+
+  it('should fetch languages if the stored JSON is malformatted', async () => {
+    const context = new DatabaseContext('augsburg', 'de')
+    const path = new DatabaseConnector().getContentPath('languages', context)
+    await RNFetchBlob.fs.writeFile(path, '{ "i": { "am": "malformatted" } }', 'utf-8')
+    const dataContainer = new DefaultDataContainer()
+    const languages = await runSaga({}, loadLanguages, city, dataContainer, false).toPromise()
+
+    expect(languages).toBe(mockLanguages)
   })
 })

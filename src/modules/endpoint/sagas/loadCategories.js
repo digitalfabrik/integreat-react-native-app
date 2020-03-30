@@ -3,8 +3,8 @@
 import type { Saga } from 'redux-saga'
 import { CategoriesMapModel, createCategoriesEndpoint } from '@integreat-app/integreat-api-client'
 import { call } from 'redux-saga/effects'
-import { baseUrl } from '../constants'
 import type { DataContainer } from '../DataContainer'
+import determineApiUrl from '../determineApiUrl'
 
 function * loadCategories (
   city: string,
@@ -14,18 +14,23 @@ function * loadCategories (
 ): Saga<CategoriesMapModel> {
   const categoriesAvailable = yield call(() => dataContainer.categoriesAvailable(city, language))
 
-  if (!categoriesAvailable || forceRefresh) {
-    console.debug('Fetching categories')
-
-    const categoriesPayload = yield call(() => createCategoriesEndpoint(baseUrl).request({ city, language }))
-    const categoriesMap: CategoriesMapModel = categoriesPayload.data
-
-    yield call(dataContainer.setCategoriesMap, city, language, categoriesMap)
-    return categoriesMap
+  if (categoriesAvailable && !forceRefresh) {
+    try {
+      console.debug('Using cached categories')
+      return yield call(dataContainer.getCategoriesMap, city, language)
+    } catch (e) {
+      console.warn('An error occurred while loading categories from JSON', e)
+    }
   }
 
-  console.debug('Using cached categories')
-  return yield call(dataContainer.getCategoriesMap, city, language)
+  console.debug('Fetching categories')
+
+  const apiUrl = yield call(determineApiUrl)
+  const categoriesPayload = yield call(() => createCategoriesEndpoint(apiUrl).request({ city, language }))
+  const categoriesMap: CategoriesMapModel = categoriesPayload.data
+
+  yield call(dataContainer.setCategoriesMap, city, language, categoriesMap)
+  return categoriesMap
 }
 
 export default loadCategories

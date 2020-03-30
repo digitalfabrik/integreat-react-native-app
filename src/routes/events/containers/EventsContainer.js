@@ -3,7 +3,7 @@
 import type { EventRouteStateType, LanguageResourceCacheStateType, StateType } from '../../../modules/app/StateType'
 import { connect } from 'react-redux'
 import Events from '../components/Events'
-import { type TFunction, translate } from 'react-i18next'
+import { type TFunction, withTranslation } from 'react-i18next'
 import withRouteCleaner from '../../../modules/endpoint/hocs/withRouteCleaner'
 import createNavigateToEvent from '../../../modules/app/createNavigateToEvent'
 import type { Dispatch } from 'redux'
@@ -61,14 +61,19 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
     return { status: 'routeNotInitialized' }
   }
 
-  if (state.cities.status === 'loading' || switchingLanguage || route.status === 'loading' || !languages) {
+  if (state.cities.status === 'loading' || switchingLanguage || route.status === 'loading' ||
+    languages.status === 'loading') {
     return { status: 'loading' }
   }
 
   if (route.status === 'languageNotAvailable') {
+    if (languages.status === 'error') {
+      console.error('languageNotAvailable status impossible if languages not ready')
+      return { status: 'error', refreshProps: null, code: languages.code, message: languages.message }
+    }
     return {
       status: 'languageNotAvailable',
-      availableLanguages: languages.filter(lng => route.allAvailableLanguages.has(lng.code)),
+      availableLanguages: languages.models.filter(lng => route.allAvailableLanguages.has(lng.code)),
       cityCode: route.city,
       changeUnavailableLanguage: createChangeUnavailableLanguage(route.city, t)
     }
@@ -80,12 +85,15 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
     language: route.language,
     navigation: ownProps.navigation
   }
+
   if (state.cities.status === 'error') {
-    return { status: 'error', message: state.cities.message, refreshProps }
+    return { status: 'error', message: state.cities.message, code: state.cities.code, refreshProps }
   } else if (resourceCache.status === 'error') {
-    return { status: 'error', message: resourceCache.message, refreshProps }
+    return { status: 'error', message: resourceCache.message, code: resourceCache.code, refreshProps }
   } else if (route.status === 'error') {
-    return { status: 'error', message: route.message, refreshProps }
+    return { status: 'error', message: route.message, code: route.code, refreshProps }
+  } else if (languages.status === 'error') {
+    return { status: 'error', message: languages.message, code: languages.code, refreshProps }
   }
   const cities = state.cities.models
 
@@ -106,7 +114,7 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
 
 const mapDispatchToProps = (dispatch: Dispatch<StoreActionType>): DispatchPropsType => ({ dispatch })
 
-const ThemedTranslatedEvents = translate('events')(
+const ThemedTranslatedEvents = withTranslation('events')(
   withTheme(props => props.language)(
     Events
   ))
@@ -124,7 +132,7 @@ class EventsContainer extends React.Component<ContainerPropsType> {
 const refresh = (refreshProps: RefreshPropsType, dispatch: Dispatch<StoreActionType>) => {
   const { navigation, cityCode, language, path } = refreshProps
   const navigateToEvent = createNavigateToEvent(dispatch, navigation)
-  navigateToEvent({ cityCode, language, path, forceUpdate: true, key: navigation.state.key })
+  navigateToEvent({ cityCode, language, path, forceRefresh: true, key: navigation.state.key })
 }
 
 type RestType = $Diff<PropsType, OwnPropsType>
@@ -134,7 +142,7 @@ const removeOwnProps = (props: PropsType): RestType => {
 }
 
 export default withRouteCleaner<{| navigation: NavigationScreenProp<*> |}>(
-  translate('error')(
+  withTranslation('error')(
     connect<PropsType, OwnPropsType, _, _, _, _>(mapStateToProps, mapDispatchToProps)(
       mapProps<RestType, PropsType>(removeOwnProps)(
         withPayloadProvider<ContainerPropsType, RefreshPropsType>(refresh)(

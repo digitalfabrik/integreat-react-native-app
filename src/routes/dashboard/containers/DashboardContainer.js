@@ -9,7 +9,7 @@ import withTheme from '../../../modules/theme/hocs/withTheme'
 import withRouteCleaner from '../../../modules/endpoint/hocs/withRouteCleaner'
 import CategoriesRouteStateView from '../../../modules/app/CategoriesRouteStateView'
 import type { StoreActionType } from '../../../modules/app/StoreActionType'
-import { type TFunction, translate } from 'react-i18next'
+import { type TFunction, withTranslation } from 'react-i18next'
 import type { NavigationScreenProp } from 'react-navigation'
 import type { StatusPropsType } from '../../../modules/error/hocs/withPayloadProvider'
 import withPayloadProvider from '../../../modules/error/hocs/withPayloadProvider'
@@ -47,7 +47,7 @@ const refresh = (refreshProps: RefreshPropsType, dispatch: Dispatch<StoreActionT
   const { cityCode, language, navigation, path } = refreshProps
   const navigateToDashboard = createNavigateToCategory('Dashboard', dispatch, navigation)
   navigateToDashboard({
-    cityCode, language, path, forceUpdate: true, key: navigation.state.key
+    cityCode, language, path, forceRefresh: true, key: navigation.state.key
   })
 }
 
@@ -70,14 +70,19 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
     return { status: 'routeNotInitialized' }
   }
 
-  if (state.cities.status === 'loading' || switchingLanguage || route.status === 'loading' || !languages) {
+  if (state.cities.status === 'loading' || switchingLanguage || route.status === 'loading' ||
+    languages.status === 'loading') {
     return { status: 'loading' }
   }
 
   if (route.status === 'languageNotAvailable') {
+    if (languages.status === 'error') {
+      console.error('languageNotAvailable status impossible if languages not ready')
+      return { status: 'error', refreshProps: null, code: languages.code, message: languages.message }
+    }
     return {
       status: 'languageNotAvailable',
-      availableLanguages: languages.filter(lng => route.allAvailableLanguages.has(lng.code)),
+      availableLanguages: languages.models.filter(lng => route.allAvailableLanguages.has(lng.code)),
       cityCode: route.city,
       changeUnavailableLanguage: createChangeUnavailableLanguage(route.city, t)
     }
@@ -89,12 +94,15 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
     path: route.path,
     navigation: ownProps.navigation
   }
+
   if (state.cities.status === 'error') {
-    return { status: 'error', refreshProps, message: state.cities.message }
+    return { status: 'error', refreshProps, message: state.cities.message, code: state.cities.code }
   } else if (resourceCache.status === 'error') {
-    return { status: 'error', refreshProps, message: resourceCache.message }
+    return { status: 'error', refreshProps, message: resourceCache.message, code: resourceCache.code }
   } else if (route.status === 'error') {
-    return { status: 'error', refreshProps, message: route.message }
+    return { status: 'error', refreshProps, message: route.message, code: route.code }
+  } else if (languages.status === 'error') {
+    return { status: 'error', message: languages.message, code: languages.code, refreshProps }
   }
 
   const cities = state.cities.models
@@ -115,7 +123,7 @@ const mapStateToProps = (state: StateType, ownProps: OwnPropsType): StatePropsTy
 
 const mapDispatchToProps = (dispatch: Dispatch<StoreActionType>): DispatchPropsType => ({ dispatch })
 
-const ThemedTranslatedDashboard = translate('dashboard')(
+const ThemedTranslatedDashboard = withTranslation('dashboard')(
   withTheme(props => props.language)(
     Dashboard
   ))
@@ -138,7 +146,7 @@ const removeOwnProps = (props: PropsType): RestType => {
 }
 
 export default withRouteCleaner<{| navigation: NavigationScreenProp<*> |}>(
-  translate('error')(
+  withTranslation('error')(
     connect<PropsType, OwnPropsType, _, _, _, _>(mapStateToProps, mapDispatchToProps)(
       mapProps<RestType, PropsType>(removeOwnProps)(
         withPayloadProvider<ContainerPropsType, RefreshPropsType>(refresh)(

@@ -3,7 +3,8 @@
 import * as React from 'react'
 import Caption from '../../../modules/common/components/Caption'
 import Tile from './Tile'
-import styled, { type StyledComponent } from 'styled-components/native'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
 import TileModel from '../models/TileModel'
 import type { ThemeType } from '../../theme/constants/theme'
 import { contentDirection } from '../../i18n/contentDirection'
@@ -24,7 +25,7 @@ const TilesRow: StyledComponent<TilesRowPropsType, ThemeType, *> = styled.View`
   display: flex;
   flex-direction: ${props => contentDirection(props.language)};
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   padding: 10px 0;
 `

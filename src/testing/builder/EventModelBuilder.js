@@ -1,7 +1,7 @@
 // @flow
 
 import { DateModel, EventModel, LocationModel } from '@integreat-app/integreat-api-client'
-import moment from 'moment-timezone'
+import moment from 'moment'
 import seedrandom from 'seedrandom'
 import type { PageResourceCacheStateType } from '../../modules/app/StateType'
 import hashUrl from '../../modules/endpoint/hashUrl'
@@ -71,9 +71,9 @@ class EventModelBuilder {
       const lastUpdate = moment(mockDate.subtract(this._predictableNumber(index), 'months').toISOString(), moment.ISO_8601)
 
       const path = `/${this._city}/${this._language}/events/event${index}`
-      const resourceUrl1 = `https://integreat/title_${index}-300x300.png`
-      const resourceUrl2 = `https://integreat/event_${index}-300x300.png`
-      const thumbnail = `http://thumbnails/event_${index}.png`
+      const resourceUrl1 = `https://cms.integreat-app.de/title_${index}-300x300.png`
+      const resourceUrl2 = `https://cms.integreat-app.de/event_${index}-300x300.png`
+      const thumbnail = `http://cms.integreat-app.de/thumbnails/event_${index}.png`
 
       return {
         path,

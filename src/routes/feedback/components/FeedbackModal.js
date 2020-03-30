@@ -59,6 +59,7 @@ class FeedbackModal extends React.Component<PropsType, StateType> {
     const feedbackItem = this.props.feedbackItems[feedbackIndex]
     const feedbackData: FeedbackParamsType = {
       feedbackType: feedbackItem.feedbackType,
+      feedbackCategory: feedbackItem.feedbackCategory,
       isPositiveRating: this.props.isPositiveFeedback,
       comment: comment,
       permalink: feedbackItem.pagePath || undefined,
@@ -83,7 +84,7 @@ class FeedbackModal extends React.Component<PropsType, StateType> {
         <Description theme={theme}>{t('feedbackType')}</Description>
         <Picker selectedValue={feedbackItems.indexOf(feedbackItem)}
                 onValueChange={this.onFeedbackVariantChanged}
-                mode={'dropdown'}>
+                mode='dropdown'>
           {feedbackItems.map((item, index) => <Picker.Item label={item.label} value={index} key={index} />)}
         </Picker>
         <Description theme={theme}> {isPositiveFeedback ? t('positiveComment') : t('negativeComment')}</Description>

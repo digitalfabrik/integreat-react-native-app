@@ -6,9 +6,11 @@ import type { TFunction } from 'react-i18next'
 import {
   CATEGORIES_FEEDBACK_TYPE,
   CityModel,
+  CONTENT_FEEDBACK_CATEGORY,
   EventModel,
   EVENTS_FEEDBACK_TYPE,
-  PAGE_FEEDBACK_TYPE
+  PAGE_FEEDBACK_TYPE,
+  TECHNICAL_FEEDBACK_CATEGORY
 } from '@integreat-app/integreat-api-client'
 import Page from '../../../modules/common/components/Page'
 import ContentNotFoundError from '../../../modules/error/ContentNotFoundError'
@@ -25,7 +27,11 @@ import type { NavigateToIntegreatUrlParamsType } from '../../../modules/app/crea
 import FeedbackVariant from '../../feedback/FeedbackVariant'
 import SiteHelpfulBox from '../../../modules/common/components/SiteHelpfulBox'
 import SpaceBetween from '../../../modules/common/components/SpaceBetween'
-import type { FeedbackType } from '@integreat-app/integreat-api-client/endpoints/createFeedbackEndpoint'
+import type {
+  FeedbackCategoryType,
+  FeedbackType
+} from '@integreat-app/integreat-api-client/endpoints/createFeedbackEndpoint'
+import ErrorCodes from '../../../modules/error/ErrorCodes'
 
 export type PropsType = {|
   path: ?string,
@@ -48,6 +54,7 @@ class Events extends React.Component<PropsType> {
   navigateToEvent = (cityCode: string, language: string, path: string) => () => {
     this.props.navigateToEvent({ cityCode, language, path })
   }
+
   renderEventListItem = (cityCode: string, language: string) => (event: EventModel) => {
     const { theme } = this.props
     return <EventListItem key={event.path}
@@ -59,30 +66,36 @@ class Events extends React.Component<PropsType> {
 
   createNavigateToFeedbackForEvent = (event: EventModel) => (isPositiveFeedback: boolean) => {
     const { t, navigation, cities, cityCode, language } = this.props
-    const createFeedbackVariant = (label: string, feedbackType: FeedbackType, pagePath?: string): FeedbackVariant =>
-      new FeedbackVariant(label, language, cityCode, feedbackType, pagePath)
+
+    const createFeedbackVariant = (
+      label: string, feedbackType: FeedbackType, feedbackCategory: FeedbackCategoryType, pagePath?: string
+    ): FeedbackVariant => new FeedbackVariant(label, language, cityCode, feedbackType, feedbackCategory, pagePath)
 
     const cityTitle = CityModel.findCityName(cities, cityCode)
     navigation.navigate('FeedbackModal', {
       isPositiveFeedback,
       feedbackItems: [
-        createFeedbackVariant(t('feedback:contentOfEvent', { event: event.title }), PAGE_FEEDBACK_TYPE, event.path),
-        createFeedbackVariant(t('feedback:contentOfCity', { city: cityTitle }), EVENTS_FEEDBACK_TYPE),
-        createFeedbackVariant(t('feedback:technicalTopics'), CATEGORIES_FEEDBACK_TYPE)
+        createFeedbackVariant(t('feedback:contentOfEvent', { event: event.title }), PAGE_FEEDBACK_TYPE,
+          CONTENT_FEEDBACK_CATEGORY, event.path),
+        createFeedbackVariant(t('feedback:contentOfCity', { city: cityTitle }), EVENTS_FEEDBACK_TYPE,
+          CONTENT_FEEDBACK_CATEGORY),
+        createFeedbackVariant(t('feedback:technicalTopics'), CATEGORIES_FEEDBACK_TYPE, TECHNICAL_FEEDBACK_CATEGORY)
       ]
     })
   }
 
   navigateToFeedbackForEvents = (isPositiveFeedback: boolean) => {
     const { t, navigation, cities, cityCode, language } = this.props
-    const createFeedbackVariant = (label: string, feedbackType: FeedbackType, pagePath?: string) =>
-      new FeedbackVariant(label, language, cityCode, feedbackType, pagePath)
+    const createFeedbackVariant = (label: string, feedbackType: FeedbackType, feedbackCategory: FeedbackCategoryType,
+      pagePath?: string) =>
+      new FeedbackVariant(label, language, cityCode, feedbackType, feedbackCategory, pagePath)
     const cityTitle = CityModel.findCityName(cities, cityCode)
     navigation.navigate('FeedbackModal', {
       isPositiveFeedback,
       feedbackItems: [
-        createFeedbackVariant(t('feedback:contentOfCity', { city: cityTitle }), EVENTS_FEEDBACK_TYPE),
-        createFeedbackVariant(t('feedback:technicalTopics'), CATEGORIES_FEEDBACK_TYPE)
+        createFeedbackVariant(t('feedback:contentOfCity', { city: cityTitle }), EVENTS_FEEDBACK_TYPE,
+          CONTENT_FEEDBACK_CATEGORY),
+        createFeedbackVariant(t('feedback:technicalTopics'), CATEGORIES_FEEDBACK_TYPE, TECHNICAL_FEEDBACK_CATEGORY)
       ]
     })
   }
@@ -94,7 +107,7 @@ class Events extends React.Component<PropsType> {
       const event: EventModel = events.find(_event => _event.path === path)
 
       if (event) {
-        const files = resourceCache[event.path]
+        const files = resourceCache[event.path] || {}
         return <Page content={event.content}
                      title={event.title}
                      lastUpdate={event.lastUpdate}
@@ -106,16 +119,17 @@ class Events extends React.Component<PropsType> {
                      navigateToIntegreatUrl={navigateToIntegreatUrl}
                      navigateToFeedback={this.createNavigateToFeedbackForEvent(event)}>
           <>
-            <PageDetail identifier={t('date', { lng: language })} information={event.date.toFormattedString(language)}
-                          theme={theme} language={language} />
-            <PageDetail identifier={t('location', { lng: language })} information={event.location.location}
-                          theme={theme} language={language} />
+            <PageDetail identifier={t('date')} information={event.date.toFormattedString(language)}
+                        theme={theme} language={language} />
+            {event.location.location && <PageDetail identifier={t('location')}
+                                                    information={event.location.location} theme={theme}
+                                                    language={language} />}
           </>
         </Page>
       }
 
       const error = new ContentNotFoundError({ type: 'event', id: path, city: cityCode, language })
-      return <Failure errorMessage={error.message} t={t} theme={theme} />
+      return <Failure errorMessage={error.message} code={ErrorCodes.PageNotFound} t={t} theme={theme} />
     }
 
     return <SpaceBetween>

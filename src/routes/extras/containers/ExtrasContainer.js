@@ -4,15 +4,15 @@ import * as React from 'react'
 import { connect } from 'react-redux'
 import { RefreshControl, ScrollView } from 'react-native'
 import Extras from '../components/Extras'
-import { type TFunction, translate } from 'react-i18next'
+import { type TFunction, withTranslation } from 'react-i18next'
 import { CityModel, createExtrasEndpoint, ExtraModel, Payload } from '@integreat-app/integreat-api-client'
 import type { ThemeType } from '../../../modules/theme/constants/theme'
 import type { StateType } from '../../../modules/app/StateType'
 import type { NavigationScreenProp } from 'react-navigation'
-import { baseUrl } from '../../../modules/endpoint/constants'
 import withTheme from '../../../modules/theme/hocs/withTheme'
 import FailureContainer from '../../../modules/error/containers/FailureContainer'
 import { LOADING_TIMEOUT } from '../../../modules/common/constants'
+import determineApiUrl from '../../../modules/endpoint/determineApiUrl'
 
 type OwnPropsType = {| navigation: NavigationScreenProp<*> |}
 
@@ -56,7 +56,7 @@ class ExtrasContainer extends React.Component<ExtrasPropsType, ExtrasStateType> 
     this.state = { extras: null, error: null, timeoutExpired: false }
   }
 
-  componentWillMount () {
+  componentDidMount () {
     this.loadExtras().catch(e => this.setState({ error: e }))
   }
 
@@ -78,7 +78,11 @@ class ExtrasContainer extends React.Component<ExtrasPropsType, ExtrasStateType> 
     setTimeout(() => this.setState({ timeoutExpired: true }), LOADING_TIMEOUT)
 
     try {
-      const payload: Payload<Array<ExtraModel>> = await (createExtrasEndpoint(baseUrl).request({ city, language }))
+      const apiUrl = await determineApiUrl()
+      const payload: Payload<Array<ExtraModel>> = await (createExtrasEndpoint(apiUrl).request({
+        city,
+        language
+      }))
 
       if (payload.error) {
         this.setState({ error: payload.error, extras: null })
@@ -116,7 +120,7 @@ class ExtrasContainer extends React.Component<ExtrasPropsType, ExtrasStateType> 
 }
 
 export default connect<PropsType, OwnPropsType, _, _, _, _>(mapStateToProps)(
-  translate('extras')(
+  withTranslation('extras')(
     withTheme(props => props.language)(
       ExtrasContainer
     )))

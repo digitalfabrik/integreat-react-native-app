@@ -6,8 +6,9 @@ import type { DataContainer } from '../DataContainer'
 import loadCategories from './loadCategories'
 import loadEvents from './loadEvents'
 import fetchResourceCache from './fetchResourceCache'
-import moment from 'moment-timezone'
-import type { PushLanguagesActionType } from '../../app/StoreActionType'
+import moment from 'moment'
+import type Moment from 'moment'
+import type { FetchLanguagesFailedActionType, PushLanguagesActionType } from '../../app/StoreActionType'
 import loadLanguages from './loadLanguages'
 import ResourceURLFinder from '../ResourceURLFinder'
 import buildResourceFilePath from '../buildResourceFilePath'
@@ -15,6 +16,8 @@ import { ContentLoadCriterion } from '../ContentLoadCriterion'
 import AppSettings from '../../settings/AppSettings'
 import NetInfo from '@react-native-community/netinfo'
 import loadCities from './loadCities'
+import { allowedResourceHostNames } from '../constants'
+import { fromError } from '../../error/ErrorCodes'
 
 /**
  *
@@ -29,13 +32,15 @@ export default function * loadCityContent (
   dataContainer: DataContainer, newCity: string, newLanguage: string,
   criterion: ContentLoadCriterion
 ): Saga<boolean> {
+  yield call(dataContainer.storeLastUsage, newCity, criterion.peeking())
+
   if (!criterion.peeking()) {
     const appSettings = new AppSettings()
     yield call(appSettings.setSelectedCity, newCity)
   }
 
   yield call(loadCities, dataContainer, false) // Never force refresh cities, when loading cityContent
-  const lastUpdate: moment | null = yield call(dataContainer.getLastUpdate, newCity, newLanguage)
+  const lastUpdate: Moment | null = yield call(dataContainer.getLastUpdate, newCity, newLanguage)
 
   console.debug('Last city content update on ',
     lastUpdate ? lastUpdate.toISOString() : 'never')
@@ -45,20 +50,32 @@ export default function * loadCityContent (
   console.debug('City content should be refreshed: ', shouldUpdate)
 
   if (criterion.shouldLoadLanguages()) {
-    yield call(loadLanguages, newCity, dataContainer, shouldUpdate) /* The languages for a city get updated if a any
+    try {
+      yield call(loadLanguages, newCity, dataContainer, shouldUpdate) /* The languages for a city get updated if a any
                                                                        language of the city is:
                                                                           * older than MAX_CONTENT_AGE,
                                                                           * has no "lastUpdate" or
                                                                           * an update is forced
                                                                         This means the loading of languages depends on
                                                                         language AND the city */
-    const languages = yield call(dataContainer.getLanguages, newCity)
+      const languages = yield call(dataContainer.getLanguages, newCity)
 
-    const pushLanguages: PushLanguagesActionType = { type: 'PUSH_LANGUAGES', params: { languages } }
-    yield put(pushLanguages)
+      const pushLanguages: PushLanguagesActionType = { type: 'PUSH_LANGUAGES', params: { languages } }
+      yield put(pushLanguages)
 
-    if (!languages.map(language => language.code).includes(newLanguage)) {
-      return false
+      if (!languages.map(language => language.code).includes(newLanguage)) {
+        return false
+      }
+    } catch (e) {
+      console.error(e)
+      const languagesFailed: FetchLanguagesFailedActionType = {
+        type: 'FETCH_LANGUAGES_FAILED',
+        params: {
+          message: `Error in fetchCategory: ${e.message}`,
+          code: fromError(e)
+        }
+      }
+      yield put(languagesFailed)
     }
   }
 
@@ -74,7 +91,7 @@ export default function * loadCityContent (
   // loadLanguages did not update the dataContainer this is needed. In case the previous call to fetchResourceCache
   // failed to download some resources an other call could fix this and download missing files.
   if (criterion.shouldRefreshResources() && !isCellularConnection) {
-    const resourceURLFinder = new ResourceURLFinder()
+    const resourceURLFinder = new ResourceURLFinder(allowedResourceHostNames)
     resourceURLFinder.init()
 
     const fetchMap = resourceURLFinder.buildFetchMap(
@@ -87,7 +104,7 @@ export default function * loadCityContent (
   }
 
   if (shouldUpdate) {
-    yield call(dataContainer.setLastUpdate, newCity, newLanguage, moment.tz('UTC'))
+    yield call(dataContainer.setLastUpdate, newCity, newLanguage, moment())
   }
 
   return true

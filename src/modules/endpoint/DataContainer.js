@@ -96,5 +96,20 @@ export interface DataContainer {
   /**
    * Returns whether the cities have been loaded or not.
    */
-  citiesAvailable (): Promise<boolean>
+  citiesAvailable (): Promise<boolean>,
+
+  /**
+   * Stores the last usage of the passed city
+   */
+  storeLastUsage (city: string, peeking: boolean): Promise<void>,
+
+  /**
+   * Deletes all pages and files that are stored offline in the filesystem
+   */
+  clearOfflineCache (): Promise<void>,
+
+  /**
+   * Clears all in-memory caches
+   */
+  clearInMemoryCache (): void
 }

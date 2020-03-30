@@ -11,6 +11,7 @@ import type { DataContainer } from '../DataContainer'
 import loadCityContent from './loadCityContent'
 import { ContentLoadCriterion } from '../ContentLoadCriterion'
 import isPeekingRoute from '../selectors/isPeekingRoute'
+import ErrorCodes, { fromError } from '../../error/ErrorCodes'
 
 /**
  * This fetch corresponds to a peek if the major content city is not equal to the city of the current route.
@@ -42,7 +43,7 @@ export function * fetchCategory (dataContainer: DataContainer, action: FetchCate
       ])
 
       const push: PushCategoryActionType = {
-        type: `PUSH_CATEGORY`,
+        type: 'PUSH_CATEGORY',
         params: { categoriesMap, resourceCache, path, cityLanguages, depth, key, city, language }
       }
       yield put(push)
@@ -51,9 +52,16 @@ export function * fetchCategory (dataContainer: DataContainer, action: FetchCate
         ? new Map(cityLanguages.map(lng => [lng.code, `/${city}/${lng.code}`]))
         : null
       const failedAction: FetchCategoryFailedActionType = {
-        type: `FETCH_CATEGORY_FAILED`,
+        type: 'FETCH_CATEGORY_FAILED',
         params: {
-          message: 'Language not available.', key, path, depth, language, city, allAvailableLanguages
+          message: 'Language not available.',
+          code: ErrorCodes.PageNotFound,
+          key,
+          path,
+          depth,
+          language,
+          city,
+          allAvailableLanguages
         }
       }
       yield put(failedAction)
@@ -61,9 +69,16 @@ export function * fetchCategory (dataContainer: DataContainer, action: FetchCate
   } catch (e) {
     console.error(e)
     const failed: FetchCategoryFailedActionType = {
-      type: `FETCH_CATEGORY_FAILED`,
+      type: 'FETCH_CATEGORY_FAILED',
       params: {
-        message: `Error in fetchCategory: ${e.message}`, key, path, depth, language, city, allAvailableLanguages: null
+        message: `Error in fetchCategory: ${e.message}`,
+        code: fromError(e),
+        key,
+        path,
+        depth,
+        language,
+        city,
+        allAvailableLanguages: null
       }
     }
     yield put(failed)
@@ -71,5 +86,5 @@ export function * fetchCategory (dataContainer: DataContainer, action: FetchCate
 }
 
 export default function * (dataContainer: DataContainer): Saga<void> {
-  yield takeLatest(`FETCH_CATEGORY`, fetchCategory, dataContainer)
+  yield takeLatest('FETCH_CATEGORY', fetchCategory, dataContainer)
 }

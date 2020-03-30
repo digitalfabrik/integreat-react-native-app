@@ -1,9 +1,0 @@
-/* 
-  InfoPlist.strings
-  Integreat
-
-  Created by Max Ammann on 15.07.19.
-  Copyright © 2019 Facebook. All rights reserved.
-*/
-
-NSPhotoLibraryAddUsageDescription = "English";

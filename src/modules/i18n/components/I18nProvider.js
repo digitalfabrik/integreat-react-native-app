@@ -2,7 +2,7 @@
 
 import i18n from 'i18next'
 import * as React from 'react'
-import { I18nextProvider, reactI18nextModule } from 'react-i18next'
+import { I18nextProvider, initReactI18next } from 'react-i18next'
 import { forEach, reduce } from 'lodash/collection'
 
 import localesResources from '../../../../locales/locales.json'
@@ -12,8 +12,8 @@ import AppSettings from '../../settings/AppSettings'
 import { Text } from 'react-native'
 
 export const RTL_LANGUAGES = ['ar', 'fa']
-const FALLBACK_LANGUAGES = ['en', 'de']
-export const DEFAULT_LANGUAGE = 'en'
+export const DEFAULT_LANGUAGE = 'de'
+const FALLBACK_LANGUAGES = [DEFAULT_LANGUAGE]
 
 type PropsType = {|
   children?: React.Node,
@@ -21,30 +21,20 @@ type PropsType = {|
 |}
 
 type StateType = {|
-  errorMessage: ?string
+  errorMessage: ?string,
+  initialisationFinished: boolean
 |}
 
 class I18nProvider extends React.Component<PropsType, StateType> {
   i18n: i18n
   appSettings: AppSettings
 
-  constructor () {
-    super()
+  constructor (props: PropsType) {
+    super(props)
 
-    this.state = { errorMessage: null }
+    this.state = { errorMessage: null, initialisationFinished: false }
 
-    const i18nextResources = I18nProvider.transformResources(localesResources)
-    this.i18n = i18n
-      .createInstance()
-      .use(LanguageDetector)
-      .use(reactI18nextModule)
-      .init({
-        resources: i18nextResources,
-        fallbackLng: FALLBACK_LANGUAGES,
-        load: 'languageOnly',
-        debug: __DEV__
-      })
-
+    this.i18n = i18n.createInstance()
     this.appSettings = new AppSettings()
   }
 
@@ -74,7 +64,7 @@ class I18nProvider extends React.Component<PropsType, StateType> {
     )
   }
 
-  getI18nextLanguage (): string {
+  getI18nextLanguage = (): string => {
     if (this.i18n.languages && this.i18n.languages.length > 0) {
       return this.i18n.languages[0]
     } else {
@@ -82,9 +72,30 @@ class I18nProvider extends React.Component<PropsType, StateType> {
     }
   }
 
-  async initContentLanguage () {
+  initI18n = async () => {
+    try {
+      const i18nextResources = I18nProvider.transformResources(localesResources)
+      await this.i18n
+        .use(LanguageDetector)
+        .use(initReactI18next)
+        .init({
+          resources: i18nextResources,
+          fallbackLng: FALLBACK_LANGUAGES,
+          load: 'languageOnly',
+          debug: __DEV__
+        })
+
+      await this.initContentLanguage()
+
+      this.setState({ initialisationFinished: true })
+    } catch (e) {
+      this.setState({ errorMessage: e.message })
+    }
+  }
+
+  initContentLanguage = async () => {
     const { setContentLanguage } = this.props
-    const contentLanguage: ?string = await this.appSettings.loadContentLanguage()
+    const contentLanguage = await this.appSettings.loadContentLanguage()
     const uiLanguage = this.getI18nextLanguage()
 
     if (!contentLanguage) {
@@ -94,9 +105,7 @@ class I18nProvider extends React.Component<PropsType, StateType> {
   }
 
   componentDidMount () {
-    this.initContentLanguage().catch(error => {
-      this.setState(() => ({ errorMessage: error.message }))
-    })
+    this.initI18n()
   }
 
   momentFormatter = createMomentFormatter(() => undefined, () => DEFAULT_LANGUAGE)
@@ -109,7 +118,7 @@ class I18nProvider extends React.Component<PropsType, StateType> {
     return (
       <I18nextProvider i18n={this.i18n}>
         <MomentContext.Provider value={this.momentFormatter}>
-          {this.props.children}
+          {this.state.initialisationFinished ? this.props.children : null}
         </MomentContext.Provider>
       </I18nextProvider>
     )

@@ -9,6 +9,7 @@ import FetcherModule from '../../fetcher/FetcherModule'
 import type { DataContainer } from '../DataContainer'
 import moment from 'moment'
 import type { LanguageResourceCacheStateType, PageResourceCacheStateType } from '../../app/StateType'
+import { fromError } from '../../error/ErrorCodes'
 
 export type FetchMapTargetType = { url: string, filePath: string, urlHash: string }
 export type FetchMapType = { [path: string]: Array<FetchMapTargetType> }
@@ -62,9 +63,9 @@ export default function * fetchResourceCache (
   } catch (e) {
     console.error(e)
     const failed: ResourcesFetchFailedActionType = {
-      type: `FETCH_RESOURCES_FAILED`,
+      type: 'FETCH_RESOURCES_FAILED',
       params: {
-        message: `Error in fetchResourceCache: ${e.message}`
+        message: `Error in fetchResourceCache: ${e.message}`, code: fromError(e)
       }
     }
     yield put(failed)

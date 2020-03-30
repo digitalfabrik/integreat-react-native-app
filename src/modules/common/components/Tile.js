@@ -2,7 +2,8 @@
 
 import * as React from 'react'
 
-import styled, { type StyledComponent } from 'styled-components/native'
+import styled from 'styled-components/native'
+import { type StyledComponent } from 'styled-components'
 import { TouchableOpacity } from 'react-native'
 import TileModel from '../models/TileModel'
 import type { ThemeType } from '../../theme/constants/theme'
@@ -19,7 +20,7 @@ const ThumbnailContainer = styled(Image)`
 `
 
 const TileTitle = styled.Text`
-  margin: 5px 0;
+  margin: 5px;
   color: ${props => props.theme.colors.textColor};
   text-align: center;
   font-family: ${props => props.theme.fonts.decorativeFontRegular};
