@@ -129,17 +129,17 @@ class PermissionSnackbarContainer extends React.Component<PropsType, StateType> 
     const { showLocationSnackbar, showPushNotificationSnackbar } = this.state
 
     if (this.shouldShowCoronaSnackbar()) {
-      return <Snackbar key='location'
+      return <Snackbar key='corona'
                        positiveAction={{
-                         label: 'WHO',
-                         href: 'https://google.com'
+                         label: t('learnMore').toUpperCase(),
+                         href: t('coronaUrl')
                        }}
                        negativeAction={{
                          label: t('dismiss').toUpperCase(),
                          onPress: this.hideCoronaSnackbar
                        }}
                        title='COVID-19'
-                       message='Die neuesten Informationen der WHO zu COVID-19 finden Sie hier: ' theme={theme} />
+                       message={t('coronaMessage')} theme={theme} />
     } else if (showLocationSnackbar) {
       return <Snackbar key='location'
                        positiveAction={{
