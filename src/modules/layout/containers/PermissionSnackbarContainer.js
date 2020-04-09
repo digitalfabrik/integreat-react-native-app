@@ -22,6 +22,7 @@ type PropsType = {|
 |}
 
 type StateType = {|
+  showCoronaSnackbar: boolean,
   showLocationSnackbar: boolean,
   showPushNotificationSnackbar: boolean
 |}
@@ -30,6 +31,7 @@ class PermissionSnackbarContainer extends React.Component<PropsType, StateType> 
   constructor (props: PropsType) {
     super(props)
     this.state = {
+      showCoronaSnackbar: true,
       showLocationSnackbar: false,
       showPushNotificationSnackbar: false
     }
@@ -98,18 +100,47 @@ class PermissionSnackbarContainer extends React.Component<PropsType, StateType> 
     return currentRoute.key === 'Landing'
   }
 
+  cityRoute = (): boolean => {
+    const { navigation } = this.props
+    const { index, routes } = navigation.state
+    const currentRoute = routes[index]
+
+    return currentRoute.key === 'CityContent'
+  }
+
   dashboardRoute = (): boolean => {
     const { navigation } = this.props
     const { index, routes } = navigation.state
     const currentRoute = routes[index]
 
-    return currentRoute.key === 'CityContent' && currentRoute.routes[currentRoute.index]?.routeName === 'Dashboard'
+    return this.cityRoute() && currentRoute.routes[currentRoute.index]?.routeName === 'Dashboard'
+  }
+
+  shouldShowCoronaSnackbar = () => {
+    return this.state.showCoronaSnackbar && (this.landingRoute() || this.cityRoute())
+  }
+
+  hideCoronaSnackbar = () => {
+    this.setState({ showCoronaSnackbar: false })
   }
 
   getSnackbar (): ?React$Element<*> {
     const { t, theme } = this.props
     const { showLocationSnackbar, showPushNotificationSnackbar } = this.state
-    if (showLocationSnackbar) {
+
+    if (this.shouldShowCoronaSnackbar()) {
+      return <Snackbar key='location'
+                       positiveAction={{
+                         label: 'WHO',
+                         href: 'https://google.com'
+                       }}
+                       negativeAction={{
+                         label: t('dismiss').toUpperCase(),
+                         onPress: this.hideCoronaSnackbar
+                       }}
+                       title='COVID-19'
+                       message='Die neuesten Informationen der WHO zu COVID-19 finden Sie hier: ' theme={theme} />
+    } else if (showLocationSnackbar) {
       return <Snackbar key='location'
                        positiveAction={{
                          label: t('grantPermission').toUpperCase(),

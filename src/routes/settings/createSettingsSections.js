@@ -15,10 +15,10 @@ const volatileValues = {
 const TRIGGER_VERSION_TAPS = 25
 
 export default ({ setSetting, t, language }: {
-                  setSetting: (changeSetting: ChangeSettingFunctionType) => Promise<void>,
-                  t: TFunction,
-                  language: string
-                }
+    setSetting: (changeSetting: ChangeSettingFunctionType) => Promise<void>,
+    t: TFunction,
+    language: string
+  }
 ) => {
   return ([
     {

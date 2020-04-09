@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import { Animated } from 'react-native'
+import { Animated, Linking } from 'react-native'
 import styled from 'styled-components/native'
 import { type StyledComponent } from 'styled-components'
 import type { ThemeType } from '../../theme/constants/theme'
@@ -11,6 +11,14 @@ const Container: StyledComponent<{}, ThemeType, *> = styled(Animated.View)`
   flex-direction: column;
   align-items: center;
   padding: 10px;
+`
+
+const Title: StyledComponent<{}, ThemeType, *> = styled.Text`
+  padding: 0 10px;
+  color: ${props => props.theme.colors.backgroundColor};
+  font-size: 25px;
+  font-weight: bold;
+  text-align: center;
 `
 
 const Message: StyledComponent<{}, ThemeType, *> = styled.Text`
@@ -39,9 +47,13 @@ const Action: StyledComponent<{}, ThemeType, *> = styled.Text`
 export type SnackbarActionType = {|
   label: string,
   onPress: () => void | Promise<void>
+|} | {|
+  label: string,
+  href: string
 |}
 
 export type PropsType = {|
+  title?: string,
   message: string,
   positiveAction: SnackbarActionType,
   negativeAction: SnackbarActionType,
@@ -50,18 +62,21 @@ export type PropsType = {|
 
 class Snackbar extends React.Component<PropsType> {
   onPositive = () => {
-    this.props.positiveAction.onPress()
+    const { positiveAction } = this.props
+    positiveAction.onPress ? positiveAction.onPress() : Linking.openURL(positiveAction.href)
   }
 
   onNegative = () => {
-    this.props.negativeAction.onPress()
+    const { negativeAction } = this.props
+    negativeAction.onPress ? negativeAction.onPress() : Linking.openURL(negativeAction.href)
   }
 
   render () {
-    const { theme, message, positiveAction, negativeAction } = this.props
+    const { theme, title, message, positiveAction, negativeAction } = this.props
 
     return (
       <Container theme={theme}>
+        {title && <Title theme={theme}>{title}</Title>}
         <Message theme={theme}>{message}</Message>
         <ActionContainer>
           <Action theme={theme} onPress={this.onNegative}>{negativeAction.label}</Action>
