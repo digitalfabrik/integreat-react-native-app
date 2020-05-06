@@ -133,6 +133,9 @@ android {
         if (project.hasProperty('VERSION_CODE')) {
             versionCode project.VERSION_CODE.toInteger()
             versionName project.VERSION_NAME
+        } else {
+            versionCode 1
+            versionName 'TestRelease'
         }
     }
     signingConfigs {
@@ -142,6 +145,11 @@ android {
                 storePassword project.KEYSTORE_PASSWORD
                 keyAlias project.KEYSTORE_KEY_ALIAS
                 keyPassword project.KEYSTORE_KEY_PASSWORD
+            } else {
+                storeFile file('test.keystore')
+                storePassword '123456'
+                keyAlias = 'test'
+                keyPassword '123456'
             }
         }
     }
