@@ -137,6 +137,5 @@ class WohnenExtraContainer extends React.Component<WohnenPropsType, WohnenStateT
 
 export default connect<PropsType, OwnPropsType, _, _, _, _>(mapStateToProps)(
   withTranslation('wohnen')(
-    withTheme()(
-      WohnenExtraContainer
-    )))
+    withTheme(WohnenExtraContainer)
+  ))
