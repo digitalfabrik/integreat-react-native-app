@@ -4,9 +4,13 @@ import type { FontsType } from '../common/fonts'
 import { commonFonts } from '../common/fonts'
 
 const fonts: FontsType = {
-  decorativeFontFamily: '\'Raleway\', \'Lateef\', sans-serif',
-  contentFontFamily: '\'Open Sans\', \'Lateef\', sans-serif',
-  ...commonFonts
+  ...commonFonts,
+  decorativeFontBold: 'Raleway-Bold',
+  decorativeFontRegular: 'Raleway-Regular',
+  contentFontRegular: 'OpenSans-Regular',
+  contentFontBold: 'OpenSans-Bold',
+  arabicWebviewFontFamilies: '\'OpenSans\', \'Lateef\', sans-serif',
+  webviewFontFamilies: '\'OpenSans\', sans-serif'
 }
 
 export default fonts
