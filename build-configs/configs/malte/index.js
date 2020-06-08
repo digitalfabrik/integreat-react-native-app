@@ -8,14 +8,10 @@ const MalteBuildConfig: BuildConfigType = {
   appTitle: 'Malteser',
   theme: malteTheme,
   darkTheme: darkMalteTheme,
-  // TODO WEBAPP-567: Add itunesAppId
   cmsUrl: 'https://malteser.tuerantuer.org',
   // TODO Change switchCmsUrl
   switchCmsUrl: 'https://malteser.tuerantuer.org',
-  featureFlags,
-  locationIcon: '/location-big.svg',
-  logoWide: '/malteser-logo.png',
-  internalLinksHijackPattern: 'https?:\\/\\/malteser\\.tuerantuer\\.org(?!\\/[^/]*\\/(wp-content|wp-admin|wp-json)\\/.*).*'
+  featureFlags
 }
 
 module.exports = MalteBuildConfig

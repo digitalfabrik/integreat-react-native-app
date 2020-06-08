@@ -9,9 +9,5 @@ export type BuildConfigType = {|
   switchCmsUrl: string,
   featureFlags: FeatureFlagsType,
   theme: ThemeType,
-  darkTheme: ThemeType,
-  itunesAppId?: string,
-  logoWide: string,
-  locationIcon: string,
-  internalLinksHijackPattern: string
+  darkTheme: ThemeType
 |}
