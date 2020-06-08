@@ -8,9 +8,7 @@ const MalteBuildConfig: BuildConfigType = {
   appTitle: 'Malteser',
   theme: malteTheme,
   darkTheme: darkMalteTheme,
-  cmsUrl: 'https://malteser.tuerantuer.org',
-  // TODO Change switchCmsUrl
-  switchCmsUrl: 'https://malteser.tuerantuer.org',
+  cmsUrl: 'https://cms.malteapp.de',
   featureFlags
 }
 

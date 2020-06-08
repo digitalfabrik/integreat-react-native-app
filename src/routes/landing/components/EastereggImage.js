@@ -43,6 +43,11 @@ class EastereggImage extends React.Component<PropsType, StateType> {
   }
 
   onImagePress = async () => {
+    const { cmsUrl, switchCmsUrl } = buildConfig()
+    if (!switchCmsUrl) {
+      return
+    }
+
     const prevClickCount = this.state.clickCount
     const clickStart = this.state.clickStart
     const clickedInTimeInterval = clickStart && clickStart.isAfter(moment().subtract(CLICK_TIMEOUT, 's'))
@@ -50,7 +55,6 @@ class EastereggImage extends React.Component<PropsType, StateType> {
     if (prevClickCount + 1 >= API_URL_OVERRIDE_MIN_CLICKS && clickedInTimeInterval) {
       const appSettings = new AppSettings()
       const apiUrlOverride = await appSettings.loadApiUrlOverride()
-      const { cmsUrl, switchCmsUrl } = buildConfig()
       const newApiUrl = !apiUrlOverride || apiUrlOverride === cmsUrl ? switchCmsUrl : cmsUrl
 
       await appSettings.setApiUrlOverride(newApiUrl)
