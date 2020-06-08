@@ -50,7 +50,7 @@ class EastereggImage extends React.Component<PropsType, StateType> {
     if (prevClickCount + 1 >= API_URL_OVERRIDE_MIN_CLICKS && clickedInTimeInterval) {
       const appSettings = new AppSettings()
       const apiUrlOverride = await appSettings.loadApiUrlOverride()
-      const { cmsUrl, switchCmsUrl } = buildConfig
+      const { cmsUrl, switchCmsUrl } = buildConfig()
       const newApiUrl = !apiUrlOverride || apiUrlOverride === cmsUrl ? switchCmsUrl : cmsUrl
 
       await appSettings.setApiUrlOverride(newApiUrl)
@@ -67,7 +67,7 @@ class EastereggImage extends React.Component<PropsType, StateType> {
 
   resetApiUrl = async () => {
     const appSettings = new AppSettings()
-    await appSettings.setApiUrlOverride(buildConfig.cmsUrl)
+    await appSettings.setApiUrlOverride(buildConfig().cmsUrl)
     this.setState({ clickCount: 0 })
     this.props.clearResourcesAndCache()
   }
@@ -75,7 +75,7 @@ class EastereggImage extends React.Component<PropsType, StateType> {
   renderApiUrlText = () => {
     const theme = this.props.theme
     const apiUrlOverride = this.state.apiUrlOverride
-    if (apiUrlOverride && apiUrlOverride !== buildConfig.cmsUrl) {
+    if (apiUrlOverride && apiUrlOverride !== buildConfig().cmsUrl) {
       return (
         <>
           <ApiUrlText>{`Currently using API: ${apiUrlOverride.toString()}`}</ApiUrlText>
