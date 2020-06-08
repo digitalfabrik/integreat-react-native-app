@@ -68,7 +68,6 @@ To make the tests simpler HOCs were mocked using:
 
 ```js
 jest.mock('react-i18next')
-jest.mock('../../../theme/hocs/withTheme')
 ```
 
 For complex HOCs it is probably easier to use the real implementation (e.g. connect()).

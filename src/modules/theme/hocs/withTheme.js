@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { wrapDisplayName } from 'recompose'
-
 import type { ThemeType } from '../constants/theme'
 import { brightTheme } from '../constants/theme'
 
