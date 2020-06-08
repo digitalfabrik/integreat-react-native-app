@@ -9,8 +9,8 @@ import type { ThemeType } from '../../../modules/theme/constants/theme'
 import type Moment from 'moment'
 import AppSettings from '../../../modules/settings/AppSettings'
 import moment from 'moment'
-import { baseUrl, liveBaseUrl, testBaseUrl } from '../../../modules/endpoint/constants'
 import { Button } from 'react-native-elements'
+import buildConfig from '../../../modules/app/constants/buildConfig'
 
 const API_URL_OVERRIDE_MIN_CLICKS = 10
 const CLICK_TIMEOUT = 8
@@ -50,7 +50,8 @@ class EastereggImage extends React.Component<PropsType, StateType> {
     if (prevClickCount + 1 >= API_URL_OVERRIDE_MIN_CLICKS && clickedInTimeInterval) {
       const appSettings = new AppSettings()
       const apiUrlOverride = await appSettings.loadApiUrlOverride()
-      const newApiUrl = (apiUrlOverride === testBaseUrl) || (!apiUrlOverride && baseUrl === testBaseUrl) ? liveBaseUrl : testBaseUrl
+      const { cmsUrl, switchCmsUrl } = buildConfig
+      const newApiUrl = !apiUrlOverride || apiUrlOverride === cmsUrl ? switchCmsUrl : cmsUrl
 
       await appSettings.setApiUrlOverride(newApiUrl)
       this.setState({ clickCount: 0, clickStart: null })
@@ -64,9 +65,9 @@ class EastereggImage extends React.Component<PropsType, StateType> {
     }
   }
 
-  switchApi = async () => {
+  resetApiUrl = async () => {
     const appSettings = new AppSettings()
-    await appSettings.setApiUrlOverride(baseUrl)
+    await appSettings.setApiUrlOverride(buildConfig.cmsUrl)
     this.setState({ clickCount: 0 })
     this.props.clearResourcesAndCache()
   }
@@ -74,13 +75,13 @@ class EastereggImage extends React.Component<PropsType, StateType> {
   renderApiUrlText = () => {
     const theme = this.props.theme
     const apiUrlOverride = this.state.apiUrlOverride
-    if (apiUrlOverride && apiUrlOverride !== baseUrl) {
+    if (apiUrlOverride && apiUrlOverride !== buildConfig.cmsUrl) {
       return (
         <>
           <ApiUrlText>{`Currently using API: ${apiUrlOverride.toString()}`}</ApiUrlText>
           <Button titleStyle={{ color: theme.colors.textColor }}
                   buttonStyle={{ backgroundColor: theme.colors.themeColor, marginTop: 10 }}
-                  onPress={this.switchApi} title='Switch back to default API' />
+                  onPress={this.resetApiUrl} title='Switch back to default API' />
         </>
       )
     }
