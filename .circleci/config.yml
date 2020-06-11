@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 parameters:
   api_triggered:
     type: boolean
@@ -366,9 +369,9 @@ jobs:
       - run:
           name: "[FL] Upload to Sentry"
           command: bundle exec fastlane android sentry_upload version_name:$NEW_VERSION_NAME version_code:$NEW_VERSION_CODE
-      - run:
-          name: "[FL] Notify about delivery"
-          command: bundle exec fastlane android notify_release
+      - slack/notify:
+          message: Integreat ${NEW_VERSION_NAME} has been released successfully on Android!
+          webhook: ${SLACK_URL}
 
   deliver_ios:
     parameters:
@@ -421,9 +424,9 @@ jobs:
       - run:
           name: "[FL] Upload to Sentry"
           command: bundle exec fastlane ios sentry_upload version_name:$NEW_VERSION_NAME version_code:$NEW_VERSION_CODE
-      - run:
-          name: "[FL] Notify about delivery"
-          command: bundle exec fastlane ios notify_release
+     - slack/notify:
+         message: Integreat ${NEW_VERSION_NAME} has been released successfully on iOS!
+         webhook: ${SLACK_URL}
 
   e2e:
     docker:
