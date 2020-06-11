@@ -38,7 +38,7 @@ end
 # version_name: The version name the build should use
 # version_code: The version code the build should use
 desc "Create an Android build in release mode. Set the environment variable E2E_TEST_IDS if you want a build usable for E2E tests. Set the environment variable TOTAL_CPUS if you run this in a Docker container."
-lane :build do  |options|
+lane :build do |options|
   version_code = options[:version_code]
   version_name = options[:version_name]
 

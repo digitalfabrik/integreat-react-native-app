@@ -287,7 +287,7 @@ jobs:
             - ~/Library/Caches/CocoaPods/
       - run:
           name: "[FL] Build"
-          command: bundle exec fastlane build
+          command: bundle exec fastlane build build_config:asf version_name:$NEW_VERSION_NAME version_code:$NEW_VERSION_CODE
           working_directory: ios
       - store_artifacts:
           path: ios/output/gym/
@@ -362,10 +362,10 @@ jobs:
           command: bundle exec fastlane android browserstack_upload_live
       - run:
           name: "[FL] Play Store Upload"
-          command: bundle exec fastlane android playstore_upload production:"<< parameters.production >>"
+          command: bundle exec fastlane android playstore_upload production:"<< parameters.production >>" version_name:$NEW_VERSION_NAME version_code:$NEW_VERSION_CODE
       - run:
           name: "[FL] Upload to Sentry"
-          command: bundle exec fastlane android sentry_upload
+          command: bundle exec fastlane android sentry_upload version_name:$NEW_VERSION_NAME version_code:$NEW_VERSION_CODE
       - run:
           name: "[FL] Notify about delivery"
           command: bundle exec fastlane android notify_release
@@ -417,10 +417,10 @@ jobs:
           steps:
             - run:
                 name: "[FL] TestFlight Upload"
-                command: bundle exec fastlane ios testflight_upload
+                command: bundle exec fastlane ios testflight_upload version_name:$NEW_VERSION_NAME
       - run:
           name: "[FL] Upload to Sentry"
-          command: bundle exec fastlane ios sentry_upload
+          command: bundle exec fastlane ios sentry_upload version_name:$NEW_VERSION_NAME version_code:$NEW_VERSION_CODE
       - run:
           name: "[FL] Notify about delivery"
           command: bundle exec fastlane ios notify_release
