@@ -72,6 +72,8 @@ program
   .description('commits the supplied version name and code to github and tags the commit')
   .action(async (newVersionName, newVersionCode) => {
     try {
+      console.warn(newVersionName)
+      console.warn(newVersionCode)
       await commitAndTag(newVersionName, newVersionCode, program)
     } catch (e) {
       console.error(e)
