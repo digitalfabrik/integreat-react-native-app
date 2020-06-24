@@ -18,7 +18,7 @@ import { render } from '@testing-library/react-native'
 import ErrorCodes from '../../../../modules/error/ErrorCodes'
 import { Text, ActivityIndicator } from 'react-native'
 import { LOADING_TIMEOUT } from '../../../../modules/common/constants'
-import { LOCAL } from '../../containers/WithCustomNewsProvider'
+import { LOCAL } from '../../hocs/withCustomNewsProvider'
 
 const mockStore = configureMockStore()
 jest.mock('react-i18next')

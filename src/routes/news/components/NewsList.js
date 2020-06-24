@@ -23,7 +23,7 @@ import NewsListItem from './NewsListItem'
 import headerImage from '../assets/tu-news-header-details-icon.svg'
 import styled from 'styled-components/native'
 import type { StyledComponent } from 'styled-components'
-import { TUNEWS } from '../containers/WithCustomNewsProvider'
+import { TUNEWS } from '../hocs/withCustomNewsProvider'
 import {
   contentAlignment,
   contentDirection

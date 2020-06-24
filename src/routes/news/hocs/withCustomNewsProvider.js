@@ -25,18 +25,17 @@ import { withTranslation } from 'react-i18next'
 export const TUNEWS = 'tunews'
 export const LOCAL = 'local'
 
-const newsTabs = [
-  {
-    type: LOCAL,
-    toggleAttr: 'pushNotificationsEnabled'
-  },
-  {
-    type: TUNEWS,
-    active: activeInternational,
-    inactive: inactiveInternational,
-    toggleAttr: 'tunewsEnabled'
-  }
-]
+const localNewsTab = {
+  type: LOCAL,
+  toggleAttr: 'pushNotificationsEnabled'
+}
+
+const tunewsTab = {
+  type: TUNEWS,
+  active: activeInternational,
+  inactive: inactiveInternational,
+  toggleAttr: 'tunewsEnabled'
+}
 
 const NewsTypeIcon = styled.Image`
   align-self: center;
@@ -148,13 +147,10 @@ export type PropsType<
 |}
 
 const NewsTypeItem = ({ tab, onItemPress, selectedNewsType, t, theme }) => {
-  function onPress () {
-    onItemPress(tab.type)
-  }
   const isLocal = tab.type === LOCAL
   const isSelected = tab.type === selectedNewsType
   return (
-    <TouchableWrapper onPress={onPress}>
+    <TouchableWrapper onPress={onItemPress}>
       {isLocal ? (
         <LocalTabWrapper isSelected={isSelected} theme={theme}>
           <LocalText theme={theme}>{t(tab.type)}</LocalText>
@@ -198,7 +194,8 @@ const withCustomNewsProvider = <
 
       selectNewsType = type => { this.setState({ selectedNewsType: type }, this.fetchNews) };
 
-      selectNewsItemAndScrollToTop = type => { this.selectNewsType(type) };
+      selectTunewsAndScrollToTop = () => { this.selectNewsType(tunewsTab.type) };
+      selectLocalNewsAndScrollToTop = () => { this.selectNewsType(localNewsTab.type) };
 
       fetchNews = () => {
         const { selectedNewsType } = this.state
@@ -241,11 +238,11 @@ const withCustomNewsProvider = <
         return (
           <HeaderContainer>
             {cityModel && cityModel.pushNotificationsEnabled &&
-              <TranslatedNewsTypeItem key='pushNotificationsEnabled' tab={newsTabs[0]} selectedNewsType={selectedNewsType}
-                                  onItemPress={this.selectNewsItemAndScrollToTop} />}
+              <TranslatedNewsTypeItem key='pushNotificationsEnabled' tab={localNewsTab} selectedNewsType={selectedNewsType}
+                                  onItemPress={this.selectLocalNewsAndScrollToTop} />}
             {cityModel && cityModel.tunewsEnabled &&
-              <TranslatedNewsTypeItem key='tunewsEnabled' tab={newsTabs[1]} selectedNewsType={selectedNewsType}
-                                  onItemPress={this.selectNewsItemAndScrollToTop} />}
+              <TranslatedNewsTypeItem key='tunewsEnabled' tab={tunewsTab} selectedNewsType={selectedNewsType}
+                                  onItemPress={this.selectTunewsAndScrollToTop} />}
           </HeaderContainer>)
       };
 
