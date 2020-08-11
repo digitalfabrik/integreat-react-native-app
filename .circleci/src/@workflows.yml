@@ -21,6 +21,8 @@ workflows:
       - prepare_build
       - prepare_delivery:
           production_delivery: true
+          requires: # Prepare delivery (including bump version) should only depend on build_ and not delivery_. Sometimes upload to the stores fails only for iOS or Android. Then we still should bump the version.
+            - prepare_build
 
   api_triggered_delivery:
     when: << pipeline.parameters.api_triggered >>

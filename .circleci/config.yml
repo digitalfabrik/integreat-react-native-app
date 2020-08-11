@@ -588,6 +588,8 @@ workflows:
             - prepare_build
             - prepare_delivery:
                 production_delivery: true
+                requires:
+                    - prepare_build
         unless: << pipeline.parameters.api_triggered >>
     version: 2
 
