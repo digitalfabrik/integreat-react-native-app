@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const authenticate = require('./github-authentication')
+// const authenticate = require('./github-authentication')
 const { program } = require('commander')
 
-const VERSION_FILE = 'version.json'
+// const VERSION_FILE = 'version.json'
 
 program
   .option('-d, --debug', 'enable extreme logging')
@@ -17,66 +17,67 @@ program
 const commitAndTag = async (versionName, versionCodeString, {
   deliverinoPrivateKey, owner, repo, branch, releaseCandidate, releaseNotes
 }) => {
-  const appOctokit = await authenticate({ deliverinoPrivateKey, owner, repo })
-  const versionFileContent = await appOctokit.repos.getContent({ owner, repo, path: VERSION_FILE, ref: branch })
-
-  const versionCode = parseInt(versionCodeString)
-  if (isNaN(versionCode)) {
-    throw new Error(`Failed to parse version code string: ${versionCodeString}`)
-  }
-
-  const contentBase64 = Buffer.from(JSON.stringify({ versionName, versionCode }))
-    .toString('base64')
-
-  const message = versionCode
-    ? `Bump version name to ${versionName} and version code to ${versionCode}\n[skip ci]`
-    : `Bump version name to ${versionName}\n[skip ci]`
-
-  const commit = await appOctokit.repos.createOrUpdateFileContents({
-    owner,
-    repo,
-    path: VERSION_FILE,
-    content: contentBase64,
-    branch,
-    message,
-    sha: versionFileContent.data.sha
-  })
-  console.warn(`New version successfully commited with message "${message}"`)
-
-  const commitSha = commit.data.commit.sha
-
-  const releaseName = `${releaseCandidate ? 'rc' : ''}${versionName}${versionCode ? `-${versionCode}` : ''}`
-
-  const tag = await appOctokit.git.createTag({
-    owner,
-    repo,
-    tag: versionName,
-    message: releaseName,
-    object: commitSha,
-    type: 'commit'
-  })
-  const tagSha = tag.data.sha
-
-  await appOctokit.git.createRef({
-    owner,
-    repo,
-    ref: `refs/tags/${versionName}`,
-    sha: tagSha
-  })
-
-  const releaseMessage = releaseCandidate
-    ? `Release Candidate ${releaseName}. This release is not delivered to production.`
-    : `Release ${releaseName}.`
-
-  const body = `${releaseMessage}\n${releaseNotes}`
-
-  await appOctokit.repos.createRelease({
-    owner,
-    repo,
-    tag_name: versionName,
-    name: versionName,
-    body
-  })
+  console.log(releaseNotes)
+  // const appOctokit = await authenticate({ deliverinoPrivateKey, owner, repo })
+  // const versionFileContent = await appOctokit.repos.getContent({ owner, repo, path: VERSION_FILE, ref: branch })
+  //
+  // const versionCode = parseInt(versionCodeString)
+  // if (isNaN(versionCode)) {
+  //   throw new Error(`Failed to parse version code string: ${versionCodeString}`)
+  // }
+  //
+  // const contentBase64 = Buffer.from(JSON.stringify({ versionName, versionCode }))
+  //   .toString('base64')
+  //
+  // const message = versionCode
+  //   ? `Bump version name to ${versionName} and version code to ${versionCode}\n[skip ci]`
+  //   : `Bump version name to ${versionName}\n[skip ci]`
+  //
+  // const commit = await appOctokit.repos.createOrUpdateFileContents({
+  //   owner,
+  //   repo,
+  //   path: VERSION_FILE,
+  //   content: contentBase64,
+  //   branch,
+  //   message,
+  //   sha: versionFileContent.data.sha
+  // })
+  // console.warn(`New version successfully commited with message "${message}"`)
+  //
+  // const commitSha = commit.data.commit.sha
+  //
+  // const releaseName = `${releaseCandidate ? 'rc' : ''}${versionName}${versionCode ? `-${versionCode}` : ''}`
+  //
+  // const tag = await appOctokit.git.createTag({
+  //   owner,
+  //   repo,
+  //   tag: versionName,
+  //   message: releaseName,
+  //   object: commitSha,
+  //   type: 'commit'
+  // })
+  // const tagSha = tag.data.sha
+  //
+  // await appOctokit.git.createRef({
+  //   owner,
+  //   repo,
+  //   ref: `refs/tags/${versionName}`,
+  //   sha: tagSha
+  // })
+  //
+  // const releaseMessage = releaseCandidate
+  //   ? `Release Candidate ${releaseName}. This release is not delivered to production.`
+  //   : `Release ${releaseName}.`
+  //
+  // const body = `${releaseMessage}\n${releaseNotes}`
+  //
+  // await appOctokit.repos.createRelease({
+  //   owner,
+  //   repo,
+  //   tag_name: versionName,
+  //   name: versionName,
+  //   body
+  // })
 }
 
 program
