@@ -16,6 +16,7 @@ export type BuildConfigType = {|
   featureFlags: FeatureFlagsType,
   lightTheme: ThemeType,
   darkTheme: ThemeType,
+  localesOverride?: string,
   iconSet: string,
   development?: boolean,
   e2e?: boolean
