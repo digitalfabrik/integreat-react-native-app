@@ -1,8 +1,8 @@
 // @flow
 
 import { reduce, forEach, merge } from 'lodash'
-import defaultLocalesJson from '../../../locales/locales.json'
-import malteLocalesJson from '../../../locales/malte-locales.json'
+import defaultLocales from '../../../locales/locales.json'
+import malteLocales from '../../../locales/malte-locales.json'
 import buildConfig from '../app/constants/buildConfig'
 
 type LocalesType = { [namespace: string]: { [language: string]: { [key: string]: string } } }
@@ -28,10 +28,7 @@ const transformLocales = (locales: TransformedLocalesType): TransformedLocalesTy
 )
 
 const chooseLocales = (): LocalesType => {
-  const defaultLocales = JSON.parse(defaultLocalesJson)
-
   if (buildConfig().localesOverride === 'Malte') {
-    const malteLocales = JSON.parse(malteLocalesJson)
     return merge(defaultLocales, malteLocales)
   }
 
