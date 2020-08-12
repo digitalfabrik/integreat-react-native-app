@@ -5,40 +5,38 @@ import React from 'react'
 import I18nProvider from '../I18nProvider'
 import type { TFunction } from 'react-i18next'
 import { withTranslation } from 'react-i18next'
-import localesResources from '../../../../../locales/locales.json'
 import waitForExpect from 'wait-for-expect'
 import AppSettings from '../../../settings/AppSettings'
 import AsyncStorage from '@react-native-community/async-storage'
 import { Text } from 'react-native'
 
+const mockResources = {
+  language1: {
+    module1: {
+      key1: 'lang1-translated1'
+    },
+    module2: {
+      key1: 'lang2-translated1'
+    }
+  },
+  language2: {
+    module1: {
+      key2: 'lang1-translated2'
+    },
+    module2: {
+      key2: 'lang2-translated2'
+    }
+  }
+}
+
 jest.mock('@react-native-community/async-storage')
 jest.mock('../../../i18n/LanguageDetector')
+jest.mock('../../loadLocales', () => jest.fn(() => ({ asdf: 'asdf' })))
+jest.mock('../../../app/constants/buildConfig', () => jest.fn(() => ({ development: false })))
 
 describe('I18nProvider', () => {
   beforeEach(async () => {
     await AsyncStorage.clear()
-  })
-
-  it('should transform the resources correctly', () => {
-    const input = {
-      module1: {
-        language1: {
-          key1: 'lang1-translated1'
-        },
-        language2: {
-          key1: 'lang2-translated1'
-        }
-      },
-      module2: {
-        language1: {
-          key2: 'lang1-translated2'
-        },
-        language2: {
-          key2: 'lang2-translated2'
-        }
-      }
-    }
-    expect(I18nProvider.transformResources(input)).toMatchSnapshot()
   })
 
   it('should set content language if not yet set', async () => {
@@ -69,15 +67,14 @@ describe('I18nProvider', () => {
   it('should initialize correct i18next instance', () => {
     const ReceivingComponent = withTranslation('common')(
       ({ t, i18n }) => {
-        const transformedResources = I18nProvider.transformResources(localesResources)
-        const languages = Object.keys(transformedResources)
+        const languages = Object.keys(mockResources)
 
         const resources = languages.reduce((resources, language: string) => {
           resources[language] = i18n.getDataByLanguage(language)
           return resources
         }, {})
 
-        expect(resources).toEqual(transformedResources)
+        expect(resources).toEqual(mockResources)
         expect(i18n.language).toEqual('en')
         expect(i18n.languages).toEqual(['en', 'de'])
         return <Text>{t('chooseALanguage')}</Text>
