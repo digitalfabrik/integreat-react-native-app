@@ -1,0 +1,7 @@
+issue_key: NATIVE-559
+show_in_stores: false
+platforms:
+  - ios
+  - android
+en: Overriding locales with the build config is now possible.
+de: Überschreiben der Locales ist nun mit den Build Configs möglich.
