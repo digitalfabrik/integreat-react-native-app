@@ -1,11 +1,11 @@
 // @flow
 
 import loadLocales from '../loadLocales'
-import malteOverrideLocales from '../__mocks__/malte-locales'
+import malteOverrideLocales from '../__mocks__/malte-locales.json'
 
 jest.mock(
   '../../../../locales/locales.json',
-  () => require('../__mocks__/locales.js'),
+  () => require('../__mocks__/locales.json'),
   { virtual: true }
 )
 
