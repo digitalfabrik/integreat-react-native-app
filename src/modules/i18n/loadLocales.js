@@ -12,7 +12,7 @@ type TransformedLocalesType = { [language: string]: { [namespace: string]: { [ke
  * @param {object} locales in our format: namespace -> languageCode -> key -> value
  * @returns {object} transformed locales in the format: languageCode -> namespace -> key -> value
  */
-const transformLocales = (locales: TransformedLocalesType): TransformedLocalesType => reduce(
+const transformLocales = (locales: LocalesType): TransformedLocalesType => reduce(
   locales,
   (transformedLocales, namespace, namespaceName) => {
     forEach(namespace, (language, languageCode) => {
