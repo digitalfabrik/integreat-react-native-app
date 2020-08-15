@@ -1,15 +1,11 @@
 // @flow
 
 import loadLocales from '../loadLocales'
+import malteOverrideLocales from '../__mocks__/malte-locales'
 
 jest.mock(
   '../../../../locales/locales.json',
   () => require('../__mocks__/locales.js'),
-  { virtual: true }
-)
-jest.mock(
-  '../../../../locales/malte-locales.json',
-  () => require('../__mocks__/malte-locales.js'),
   { virtual: true }
 )
 
@@ -26,7 +22,7 @@ describe('loadLocales', () => {
   })
 
   it('should correctly merge and transform locales', () => {
-    mockBuildConfig.mockImplementation(() => ({ localesOverride: 'Malte' }))
+    mockBuildConfig.mockImplementation(() => ({ localesOverride: malteOverrideLocales }))
     expect(loadLocales()).toMatchSnapshot()
   })
 })
