@@ -2,10 +2,9 @@
 
 import { reduce, forEach, merge } from 'lodash'
 import defaultLocales from '../../../locales/locales.json'
-import malteLocales from '../../../locales/malte-locales.json'
 import buildConfig from '../app/constants/buildConfig'
+import type { LocalesType } from '../../../build-configs/configs/BuildConfigType'
 
-type LocalesType = { [namespace: string]: { [language: string]: { [key: string]: string } } }
 type TransformedLocalesType = { [language: string]: { [namespace: string]: { [key: string]: string } } }
 
 /**
@@ -27,16 +26,9 @@ const transformLocales = (locales: TransformedLocalesType): TransformedLocalesTy
   {}
 )
 
-const chooseLocales = (): LocalesType => {
-  if (buildConfig().localesOverride === 'Malte') {
-    return merge(defaultLocales, malteLocales)
-  }
-
-  return defaultLocales
-}
-
 const loadLocales = (): TransformedLocalesType => {
-  const locales = chooseLocales()
+  const localesOverride = buildConfig().localesOverride
+  const locales = localesOverride ? merge(defaultLocales, localesOverride) : defaultLocales
   return transformLocales(locales)
 }
 

@@ -8,6 +8,8 @@ export type FeatureFlagsType = {|
   introSlides: boolean
 |}
 
+export type LocalesType = { [namespace: string]: { [language: string]: { [key: string]: string } } }
+
 export type BuildConfigType = {|
   appName: string,
   cmsUrl: string,
@@ -16,7 +18,7 @@ export type BuildConfigType = {|
   featureFlags: FeatureFlagsType,
   lightTheme: ThemeType,
   darkTheme: ThemeType,
-  localesOverride?: string,
+  localesOverride?: LocalesType,
   iconSet: string,
   development?: boolean,
   e2e?: boolean
