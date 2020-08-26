@@ -2,14 +2,16 @@
 
 import { darkTheme, lightTheme } from '../../themes/malte'
 import type { BuildConfigType } from '../BuildConfigType'
-import malteOverrideLocales from '../../../locales/malte-locales.json'
+// import malteOverrideLocales from '../../../locales/malte-locales.json'
+
 export const MALTE_ICONS = 'MALTE'
 
 const MalteBuildConfig: BuildConfigType = {
   appName: 'Malte',
   lightTheme,
   darkTheme,
-  localesOverride: malteOverrideLocales,
+  // TODO NATIVE-615: Uncomment this
+  // localesOverride: malteOverrideLocales,
   iconSet: MALTE_ICONS,
   cmsUrl: 'https://cms.malteapp.de',
   allowedHostNames: ['cms.malteapp.de'],
