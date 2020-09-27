@@ -1,3 +1,5 @@
+# This repository has been migrated to [integreat-app](https://github.com/Integreat/integreat-app)
+
 # integreat-react-native-app
 
 ## Contents
